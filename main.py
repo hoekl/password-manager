@@ -6,3 +6,4 @@ def pw_gen(pw_length):
     return(password)
 
 print(pw_gen(10))
+
