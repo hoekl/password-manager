@@ -10,19 +10,28 @@ class HelloFrame(wx.Frame):
         super(HelloFrame, self).__init__(*args, **kw)
 
         # create a panel in the frame
-        pnl = wx.Panel(self)
+        panel = wx.Panel(self)
 
         # put some text with a larger bold font on it
-        st = wx.StaticText(pnl, label="Hello World!")
-        font = st.GetFont()
+        set_text = wx.StaticText(panel, label="Hello World!")
+        font = set_text.GetFont()
         font.PointSize += 10
         font = font.Bold()
-        st.SetFont(font)
+        set_text.SetFont(font)
+
+        # create input panel and button
+        self.text_ctrl = wx.TextCtrl(panel, pos=(5, 5))
+        my_button = wx.Button(panel, label='Click Me', pos=(5, 55))
 
         # and create a sizer to manage the layout of child widgets
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(st, wx.SizerFlags().Border(wx.TOP|wx.LEFT, 25))
-        pnl.SetSizer(sizer)
+        sizer.Add(set_text, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        sizer.Add(self.text_ctrl, 0, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(my_button, 0, wx.ALL | wx.CENTER, 5)
+        panel.SetSizer(sizer)
+
+        # add event listener to button
+        my_button.Bind(wx.EVT_BUTTON, self.on_click)
 
         # create a menu bar
         self.makeMenuBar()
@@ -72,6 +81,12 @@ class HelloFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit,  exitItem)
         self.Bind(wx.EVT_MENU, self.OnAbout, aboutItem)
 
+    def on_click(self, event):
+        value = self.text_ctrl.GetValue()
+        if not value:
+            print("Nothing entered in textbox")
+        else:
+            print(f'You typed: "{value}"')
 
     def OnExit(self, event):
         """Close the frame, terminating the application."""
