@@ -11,10 +11,18 @@ class MainPanel(wx.Panel):
         main_sizer.Add(pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         self.SetSizer(main_sizer)
 
-    def onGenerate():
-        pass
+    def onGenerate(self, event):
+        dialog = PWGenWindow()
+        dialog.ShowModal()
+        dialog.Destroy()
 
-
+class PWGenWindow(wx.Dialog):
+    def __init__(self):
+        super().__init__(parent=None, title='Generate new password')
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        pwGenButton = wx.Button(self, label='Generate Password')
+        self.main_sizer.Add(pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.SetSizer(self.main_sizer)
 class MainFrame(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title='Password Manager')
