@@ -1,7 +1,6 @@
 import secrets
 import string
 import wx
-from wx.core import Width
 
 class MainPanel(wx.Panel):
     def __init__(self, parent):
@@ -32,6 +31,7 @@ class PWGenWindow(wx.Dialog):
         password = ''.join((secrets.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(20)))
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
+
 class MainFrame(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title='Password Manager')
@@ -43,10 +43,3 @@ if __name__ == '__main__':
     frame = MainFrame()
     frame.Show()
     app.MainLoop()
-
-def pw_gen(pw_length):
-    password = ''.join((secrets.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(pw_length)))
-    return(password)
-
-#print(pw_gen(10))
-
