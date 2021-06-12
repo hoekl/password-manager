@@ -19,16 +19,24 @@ class MainPanel(wx.Panel):
 class PWGenWindow(wx.Dialog):
     def __init__(self):
         super().__init__(parent=None, title='Generate new password')
+        self.pwLength = 12
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         pwGenButton = wx.Button(self, label='Generate Password')
         pwGenButton.Bind(wx.EVT_BUTTON, self.generatePW)
         self.txt_ctrl = wx.TextCtrl(self, pos=(5, 5), size=(300, -1))
         self.main_sizer.Add(self.txt_ctrl, wx.SizerFlags(0).Centre().Border(wx.ALL, 5))
         self.main_sizer.Add(pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.spin_input = wx.SpinCtrl(self, style=wx.TE_PROCESS_ENTER, pos=(5, 15), min=8, max=24, initial=self.pwLength)
+        self.spin_input.Bind(wx.EVT_SPINCTRL, self.setPWLength)
+        self.main_sizer.Add(self.spin_input, wx.SizerFlags().Left().Border(wx.ALL, 5))
         self.SetSizer(self.main_sizer)
 
+    def setPWLength(self, event):
+        self.pwLength = self.spin_input.GetValue()
+
+
     def generatePW(self, event):
-        password = ''.join((secrets.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(20)))
+        password = ''.join((secrets.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(self.pwLength)))
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
 
