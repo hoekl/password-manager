@@ -50,7 +50,6 @@ class PWGenWindow(wx.Dialog):
         if 2 in options:
             self.sourceString += string.punctuation
 
-        print(self.sourceString)
 
     def generatePW(self, event):
         self.getPWOptions(self.checkListBox.GetCheckedItems())
