@@ -3,8 +3,8 @@ import string
 import wx
 
 class MainPanel(wx.Panel):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, *args, **kw):
+        super(MainPanel, self).__init__(*args, **kw)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         pwGenButton = wx.Button(self, label='Generate Password')
         pwGenButton.Bind(wx.EVT_BUTTON, self.onGenerate)
@@ -30,12 +30,18 @@ class PWGenWindow(wx.Dialog):
         self.spin_input.Bind(wx.EVT_SPINCTRL, self.setPWLength)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(self.txt_ctrl, wx.SizerFlags(0).Centre().Border(wx.ALL, 5))
-        self.main_sizer.Add(self.pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
-        self.main_sizer.Add(self.spin_input, wx.SizerFlags().Centre().Border(wx.ALL, 5))
-        self.main_sizer.Add(self.checkListBox, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.objects = [self.txt_ctrl, self.pwGenButton, self.spin_input, self.checkListBox]
+        self.addToSizer(self.objects)
+        # self.main_sizer.Add(self.txt_ctrl, wx.SizerFlags(0).Centre().Border(wx.ALL, 5))
+        # self.main_sizer.Add(self.pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        # self.main_sizer.Add(self.spin_input, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        # self.main_sizer.Add(self.checkListBox, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
         self.SetSizer(self.main_sizer)
+
+    def addToSizer(self, objects):
+        for object in objects:
+            self.main_sizer.Add(object, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
     def setPWLength(self, event):
         self.pwLength = self.spin_input.GetValue()
@@ -56,16 +62,3 @@ class PWGenWindow(wx.Dialog):
         password = ''.join((secrets.choice(self.sourceString) for i in range(self.pwLength)))
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
-
-
-class MainFrame(wx.Frame):
-    def __init__(self):
-        super().__init__(parent=None, title='Password Manager')
-        self.panel = MainPanel(self)
-        self.CreateStatusBar()
-
-if __name__ == '__main__':
-    app = wx.App()
-    frame = MainFrame()
-    frame.Show()
-    app.MainLoop()
