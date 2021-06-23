@@ -1,6 +1,9 @@
 import couchdb2
 import traceback
+import json
+import pprint
 
+pp = pprint.PrettyPrinter(indent=4)
 server = couchdb2.Server("http://admin:pwmanager@127.0.0.1:5984")
 
 
@@ -22,12 +25,15 @@ def dbCreate(dbName):
 
 def dbQueryAll(db):
     assert isinstance(db, couchdb2.Database)
-    if db.exists() == True:
-        for id in db.ids():
-            select = {"_id": id}
-            res = db.find(select, limit=None,)
-            print(res)
+    selector = {
+            "_id": {
+                "$gt": None
+            }
+        }
 
+    if db.exists() == True:
+        res = db.find(selector, limit=None)
+        pp.pprint(res)
 if __name__ == "__main__":
     dbName = "mock_data"
     db = dbConnect(dbName)
@@ -36,7 +42,6 @@ if __name__ == "__main__":
     else:
         db = dbCreate(dbName)
     dbQueryAll(db)
-    res = db.get_indexes()
-    print(res)
+
 
 
