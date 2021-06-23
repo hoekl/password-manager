@@ -1,6 +1,5 @@
 import couchdb2
 import traceback
-import json
 import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
