@@ -4,7 +4,7 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
 server = couchdb2.Server("http://admin:pwmanager@127.0.0.1:5984")
-dbName = "mock_data"
+#dbName = "mock_data"
 
 class DataBase():
     def __init__(self, dbName) -> couchdb2.Database:
@@ -16,7 +16,7 @@ class DataBase():
                 self.dbCreate()
 
 
-    def dbCreate(self):
+    def Create(self):
         if server.up() == True:
             try:
                 self.db = server.create(self.name)
@@ -37,7 +37,7 @@ class DataBase():
             }
 
 
-    def dbQueryAll(self):
+    def QueryAll(self):
         self.assertIsDB()
         self.selector = {
                 "_id": {
@@ -50,7 +50,7 @@ class DataBase():
             pp.pprint(res)
 
 
-    def dbQuery(self, selector):
+    def Query(self):
         self.assertIsDB()
         assert self.selector != None
         if self.db.exists() == True:
