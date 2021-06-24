@@ -33,6 +33,27 @@ def dbQueryAll(db):
     if db.exists() == True:
         res = db.find(selector, limit=None)
         pp.pprint(res)
+
+def buildQuerySelector(querytype, querystring):
+    if querytype == "search":
+        selector = {
+            "_id": {
+                "$gt": None
+            },
+            "$or": [
+                {"website": querystring},
+                {"service name": querystring}
+            ]
+        }
+    return selector
+
+def dbQuery(db, selector):
+    assert isinstance(db, couchdb2.Database)
+    assert selector != None
+    if db.exists() == True:
+        res = db.find(selector, limit=None)
+        pp.pprint(res)
+
 if __name__ == "__main__":
     dbName = "mock_data"
     db = dbConnect(dbName)
@@ -40,7 +61,8 @@ if __name__ == "__main__":
         pass
     else:
         db = dbCreate(dbName)
-    dbQueryAll(db)
-
+    #dbQueryAll(db)
+    selector = buildQuerySelector("search", "laoreet")
+    dbQuery(db, selector)
 
 
