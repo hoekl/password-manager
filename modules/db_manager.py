@@ -4,65 +4,67 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
 server = couchdb2.Server("http://admin:pwmanager@127.0.0.1:5984")
+dbName = "mock_data"
+
+class DataBase():
+    def __init__(self, dbName) -> couchdb2.Database:
+        self.name = dbName
+        if server.up() == True:
+            try:
+                self.db = server.get(self.name, check=True)     # raises NotFoundError if database doesn't exist
+            except couchdb2.NotFoundError:
+                self.dbCreate()
 
 
-def dbConnect(dbName):
-    if server.up() == True:
-        try:
-            db = couchdb2.Database(server, dbName, check=True)
-        except Exception:
-            print(traceback.print_exc())
-        return db
+    def dbCreate(self):
+        if server.up() == True:
+            try:
+                self.db = server.create(self.name)
+            except Exception:
+                print(traceback.print_exc())
 
-def dbCreate(dbName):
-    if server.up() == True:
-        try:
-            db = server.create(dbName)
-        except Exception:
-            print(traceback.print_exc())
-        return db
 
-def dbQueryAll(db):
-    assert isinstance(db, couchdb2.Database)
-    selector = {
-            "_id": {
-                "$gt": None
+    def buildQuerySelector(self, querytype, querystring):
+        if querytype == "search":
+            self.selector = {
+                "_id": {
+                    "$gt": None
+                },
+                "$or": [
+                    {"website": querystring},
+                    {"service name": querystring}
+                ]
             }
-        }
 
-    if db.exists() == True:
-        res = db.find(selector, limit=None)
-        pp.pprint(res)
 
-def buildQuerySelector(querytype, querystring):
-    if querytype == "search":
-        selector = {
-            "_id": {
-                "$gt": None
-            },
-            "$or": [
-                {"website": querystring},
-                {"service name": querystring}
-            ]
-        }
-    return selector
+    def dbQueryAll(self):
+        self.assertIsDB()
+        self.selector = {
+                "_id": {
+                    "$gt": None
+                }
+            }
 
-def dbQuery(db, selector):
-    assert isinstance(db, couchdb2.Database)
-    assert selector != None
-    if db.exists() == True:
-        res = db.find(selector, limit=None)
-        pp.pprint(res)
+        if self.db.exists() == True:
+            res = self.db.find(selector, limit=None)
+            pp.pprint(res)
+
+
+    def dbQuery(self, selector):
+        self.assertIsDB()
+        assert selector != None
+        if self.db.exists() == True:
+            res = self.db.find(selector, limit=None)
+            pp.pprint(res)
+
+
+    def assertIsDB(self):
+        try:
+            assert isinstance(self.db, couchdb2.Database)
+        except Exception:
+                print(traceback.print_exc())
 
 if __name__ == "__main__":
-    dbName = "mock_data"
-    db = dbConnect(dbName)
-    if isinstance(db, couchdb2.Database) == True:
-        pass
-    else:
-        db = dbCreate(dbName)
-    #dbQueryAll(db)
-    selector = buildQuerySelector("search", "laoreet")
-    dbQuery(db, selector)
-
-
+    db = DataBase(dbName)
+    selector = db.buildQuerySelector("search", "laoreet")
+    db.dbQuery(selector)
