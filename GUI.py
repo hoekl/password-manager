@@ -1,7 +1,8 @@
 import wx
-from wx.core import ListCtrl
-
+import pprint
 from modules import login_creator as login
+from modules import db_manager as db
+pp = pprint.PrettyPrinter(indent=4)
 
 class BaseFrame(wx.Frame):
 
@@ -23,12 +24,12 @@ class ListPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(ListPanel, self).__init__(*args, **kw)
 
-        #listctrl = wx.ListCtrl(self, size=(900, 400), style=wx.LC_REPORT, name=("All Logins"))
-        testItems = ["amazon.com", "twitter.com", "oracle.com"]
-        listBox = wx.ListBox(self, size=(400, -1), choices = testItems, style=wx.LB_SINGLE)
+        choices = self.getLoginsFromDB()
+
+        listBox = wx.ListBox(self, size=(400, -1), choices = choices[1], style=wx.LB_SINGLE)
         self.textControl = wx.TextCtrl(self, style=wx.TE_MULTILINE)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        #sizer.Add(listctrl, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+
         sizer.Add(listBox, 0, wx.EXPAND)
         sizer.Add(self.textControl, 1, wx.EXPAND)
         self.SetSizer(sizer)
@@ -37,10 +38,23 @@ class ListPanel(wx.Panel):
     def onListBox(self, event):
         self.textControl.AppendText("Current select:" + event.GetEventObject().GetStringSelection()+"\n")
 
+    def getLoginsFromDB(self):
+        res = db.QueryAll()
+        id_list = []
+        site_list = []
+
+        for doc in res['docs']:
+            id = doc['_id']
+            website = doc['website']
+            id_list.append(id)
+            site_list.append(website)
+        return id_list, site_list
+        #pp.pprint(res)
 if __name__ == '__main__':
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
+    db = db.DataBase("mock_data")
     frm = BaseFrame(None, title='Password Manager', size=(1000,500))
     frm.Show()
     app.MainLoop()
