@@ -46,15 +46,15 @@ class DataBase():
             }
 
         if self.db.exists() == True:
-            res = self.db.find(selector, limit=None)
+            res = self.db.find(self.selector, limit=None)
             pp.pprint(res)
 
 
     def dbQuery(self, selector):
         self.assertIsDB()
-        assert selector != None
+        assert self.selector != None
         if self.db.exists() == True:
-            res = self.db.find(selector, limit=None)
+            res = self.db.find(self.selector, limit=None)
             pp.pprint(res)
 
 
