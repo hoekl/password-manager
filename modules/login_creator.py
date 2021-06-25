@@ -54,11 +54,11 @@ class PWGenWindow(wx.Dialog):
             self.spin_input,
             self.checkListBox,
         ]
-        #self.middle_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # self.middle_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.main_sizer.AddStretchSpacer()
         self.addToSizer(self.objects)
         self.main_sizer.AddStretchSpacer()
-        #self.middle_sizer.Add(self.main_sizer, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        # self.middle_sizer.Add(self.main_sizer, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         self.SetSizer(self.main_sizer)
 
     def addToSizer(self, objects):
@@ -85,3 +85,7 @@ class PWGenWindow(wx.Dialog):
         )
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
+
+
+if __name__ == "__main__":
+    pass
