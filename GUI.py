@@ -1,8 +1,13 @@
 import wx
 import pprint
+import ctypes
 from modules import login_creator as login
 from modules import db_manager as db
 
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(True)
+except Exception:
+    pass
 pp = pprint.PrettyPrinter(indent=4)
 
 
@@ -41,14 +46,10 @@ class ListPanel(wx.Panel):
 
         self.Bind(wx.EVT_LISTBOX, self.onListBox, listBox)
 
-
-
     def onListBox(self, event):
         self.textControl.Clear()
         string = event.GetEventObject().GetStringSelection()
-        self.textControl.AppendText(
-            "Current select: " + string + "\n\n"
-        )
+        self.textControl.AppendText("Current select: " + string + "\n\n")
         doc = db.getDocByID(self.linkDict, string)
         listKeys = list(doc.keys())
         listValues = list(doc.values())
@@ -61,8 +62,6 @@ class ListPanel(wx.Panel):
             strKey = str(listKeys[i])
             strVal = str(listValues[i])
             self.textControl.AppendText(strKey + ": " + strVal + "\n")
-
-
 
     def getLoginsFromDB(self):
         res = db.QueryAll()
@@ -78,6 +77,8 @@ if __name__ == "__main__":
     # frame, show it, and start the event loop.
     app = wx.App()
     db = db.DataBase("mock_data")
-    frm = BaseFrame(None, title="Password Manager", size=(1000, 500))
+    frm = BaseFrame(None, title="   Password Manager")
+    frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
+    frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
     frm.Show()
     app.MainLoop()
