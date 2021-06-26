@@ -27,6 +27,20 @@ class BaseFrame(wx.Frame):
         frameSizer.Add(firstPanel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         frameSizer.Add(secondPanel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
+class LoginData():
+    def __init__(self, doc=None):
+        if doc != None:
+            self.data = doc
+
+    def formatData(self):
+        listKeys = list(self.data.keys())
+        listValues = list(self.data.values())
+        listKeys.pop(0)
+        listKeys.pop(0)
+        listValues.pop(0)
+        listValues.pop(0)
+
+        return listKeys, listValues
 
 class ListPanel(wx.Panel):
     def __init__(self, *args, **kw):
@@ -50,23 +64,29 @@ class ListPanel(wx.Panel):
         self.textControl.Clear()
         string = event.GetEventObject().GetStringSelection()
         self.textControl.AppendText("Current select: " + string + "\n\n")
-        doc = db.getDocByID(self.linkDict, string)
-        listKeys = list(doc.keys())
-        listValues = list(doc.values())
-        listKeys.pop(0)
-        listKeys.pop(0)
-        listValues.pop(0)
-        listValues.pop(0)
+        uID = db.getIDfromDict(string)#
+        doc = db.getDocByID(uID)
+        dataDict = LoginData(doc)
+        dataTuple = dataDict.formatData()
 
-        for i in range(len(listKeys)):
-            strKey = str(listKeys[i])
-            strVal = str(listValues[i])
-            self.textControl.AppendText(strKey + ": " + strVal + "\n")
+        for i in range(len(dataTuple[0])):
+            self.textControl.AppendText(dataTuple[0][i] + ": " + dataTuple[1][i] + "\n")
+        # listKeys = list(doc.keys())
+        # listValues = list(doc.values())
+        # listKeys.pop(0)
+        # listKeys.pop(0)
+        # listValues.pop(0)
+        # listValues.pop(0)
+
+        # for i in range(len(listKeys)):
+        #     strKey = str(listKeys[i])
+        #     strVal = str(listValues[i])
+        #     self.textControl.AppendText(strKey + ": " + strVal + "\n")
 
     def getLoginsFromDB(self):
         res = db.QueryAll()
-        self.linkDict = db.formatQueryRes(res)
-        choicesList = list(self.linkDict.keys())
+        db.formatQueryRes(res)
+        choicesList = list(db.linkDict.keys())
 
         return choicesList
         # pp.pprint(res)

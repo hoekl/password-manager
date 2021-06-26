@@ -61,18 +61,18 @@ class DataBase:
                 }
             )
         #pp.pprint(link_dict)
-        return link_dict
+        self.linkDict = link_dict
 
-    def getIDfromDict(self, linkDict, serviceName):
-        doc = linkDict.get(serviceName)
+    def getIDfromDict(self, serviceName):
+        doc = self.linkDict.get(serviceName)
         uID = doc["id"]
         return uID
 
-    def getDocByID(self, linkDict, serviceName):
-        uID = self.getIDfromDict(linkDict, serviceName)
+    def getDocByID(self, uID):
         doc = self.db.get(uID, rev=None, revs_info=False, conflicts=False)
         pp.pprint(doc)
         return doc
+
     def assertIsDB(self):
         try:
             assert isinstance(self.db, couchdb2.Database)
@@ -85,4 +85,5 @@ if __name__ == "__main__":
     res = db.QueryAll()
     link_dict = db.formatQueryRes(res)
     uID = db.getIDfromDict(link_dict, "aliquam")
+    pp.pprint(db.getDocByID(uID))
     print(uID)
