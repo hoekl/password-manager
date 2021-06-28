@@ -7,12 +7,12 @@ class MainPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(MainPanel, self).__init__(*args, **kw)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        pwGenButton = wx.Button(self, label="Generate Password")
-        pwGenButton.Bind(wx.EVT_BUTTON, self.onGenerate)
-        main_sizer.Add(pwGenButton, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        launch_dialog = wx.Button(self, label="Generate Password")
+        launch_dialog.Bind(wx.EVT_BUTTON, self.on_generate)
+        main_sizer.Add(launch_dialog, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         self.SetSizer(main_sizer)
 
-    def onGenerate(self, event):
+    def on_generate(self, event):
         dialog = PWGenWindow()
         dialog.ShowModal()
         dialog.Destroy()
@@ -21,9 +21,9 @@ class MainPanel(wx.Panel):
 class PWGenWindow(wx.Dialog):
     def __init__(self):
         super().__init__(parent=None, title="Generate new password")
-        self.pwLength = 12
+        self.pw_length = 12
         self.SetClientSize(self.FromDIP(wx.Size(500, 200)))
-        self.pwGenButton = wx.Button(self, label="Generate Password")
+        self.generate_button = wx.Button(self, label="Generate Password")
         self.txt_ctrl = wx.TextCtrl(
             self,
             pos=(5, 5),
@@ -36,52 +36,51 @@ class PWGenWindow(wx.Dialog):
             pos=(5, 15),
             min=8,
             max=24,
-            initial=self.pwLength,
+            initial=self.pw_length,
         )
-        self.checkListBox = wx.CheckListBox(
+        self.choices_box = wx.CheckListBox(
             self,
             pos=(50, 50),
             choices=["Upper and Lowercase", "Digits", "Special Characters"],
         )
-        self.checkListBox.SetCheckedItems((0, 1, 2))
-        self.pwGenButton.Bind(wx.EVT_BUTTON, self.generatePW)
-        self.spin_input.Bind(wx.EVT_SPINCTRL, self.setPWLength)
+        self.choices_box.SetCheckedItems((0, 1, 2))
+        self.generate_button.Bind(wx.EVT_BUTTON, self.generate_pw)
+        self.spin_input.Bind(wx.EVT_SPINCTRL, self.set_pw_length)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.objects = [
             self.txt_ctrl,
-            self.pwGenButton,
+            self.generate_button,
             self.spin_input,
-            self.checkListBox,
+            self.choices_box,
         ]
-        # self.middle_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         self.main_sizer.AddStretchSpacer()
-        self.addToSizer(self.objects)
+        self.add_to_sizer(self.objects)
         self.main_sizer.AddStretchSpacer()
-        # self.middle_sizer.Add(self.main_sizer, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         self.SetSizer(self.main_sizer)
 
-    def addToSizer(self, objects):
+    def add_to_sizer(self, objects):
         for object in objects:
             self.main_sizer.Add(object, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
-    def setPWLength(self, event):
-        self.pwLength = self.spin_input.GetValue()
+    def set_pw_length(self):
+        self.pw_length = self.spin_input.GetValue()
 
-    def getPWOptions(self, options):
-        self.sourceString = string.ascii_lowercase
+    def set_pw_options(self, options):
+        self.source_string = string.ascii_lowercase
 
         if 0 in options:
-            self.sourceString = string.ascii_letters
+            self.source_string = string.ascii_letters
         if 1 in options:
-            self.sourceString += string.digits
+            self.source_string += string.digits
         if 2 in options:
-            self.sourceString += string.punctuation
+            self.source_string += string.punctuation
 
-    def generatePW(self, event):
-        self.getPWOptions(self.checkListBox.GetCheckedItems())
+    def generate_pw(self, event):
+        self.set_pw_options(self.choices_box.GetCheckedItems())
         password = "".join(
-            (secrets.choice(self.sourceString) for i in range(self.pwLength))
+            (secrets.choice(self.source_string) for i in range(self.pw_length))
         )
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
