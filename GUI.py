@@ -1,3 +1,4 @@
+from typing import List
 import wx
 import pprint
 import ctypes
@@ -14,7 +15,7 @@ pp = pprint.PrettyPrinter(indent=4)
 class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
-
+        self.CreateStatusBar()
         notebook_panel = wx.Notebook(self)
         first_panel = login.MainPanel(notebook_panel)
         second_panel = ListPanel(notebook_panel)
@@ -35,26 +36,65 @@ class ListPanel(wx.Panel):
             self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
         )
 
-        self.text_control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(list_box, 0, wx.EXPAND)
-        sizer.Add(self.text_control, 1, wx.EXPAND)
-        self.SetSizer(sizer)
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(list_box, 0, wx.EXPAND)
+        self.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_LISTBOX, self.on_list_box, list_box)
 
     def on_list_box(self, event):
-        self.text_control.Clear()
+        display_panel = LoginsPanel(self)
         string = event.GetEventObject().GetStringSelection()
-        self.text_control.AppendText("Current select: " + string + "\n\n")
+        display_panel.create_and_show(string)
+
+        if self.sizer.GetItemCount() > 1:
+            sizer_item = self.sizer.GetItem(1)
+            panel = sizer_item.GetWindow()
+            self.sizer.Hide(panel)
+            panel.Destroy()
+
+            self.sizer.Add(display_panel, 1, wx.EXPAND)
+        else:
+            self.sizer.Add(display_panel, 1, wx.EXPAND)
+
+        self.sizer.Layout()
+
+
+class LoginsPanel(wx.Panel):
+    def __init__(self, *args, **kw):
+        super(LoginsPanel, self).__init__(*args, **kw)
+
+
+    def create_and_show(self, string):
+        self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.entries = []
+
         uID = db.get_doc_id(string)
         doc = db.get_doc_by_id(uID)
         data_dict = db_ops.LoginData(doc)
-        key_list, value_list = data_dict.format_data()
+        index = 0
+        for key, value in data_dict.data.items():
+            self.label = wx.StaticText(self, label=key)
+            self.entries.append(wx.TextCtrl(self, value=value))
+            self.txtbox_sizer.Add(self.label, 1, wx.EXPAND | wx.ALL, 0)
+            self.txtbox_sizer.Add(self.entries[index], 3, wx.EXPAND | wx.BOTTOM, 10)
+            self.Bind(wx.EVT_TEXT, self.evt_text, self.entries[index])
+            self.Bind(wx.EVT_CHAR, self.evt_char, self.entries[index])
+            index += 1
 
-        for key, value in zip(key_list, value_list):
-            self.text_control.AppendText(key + ": " + value + "\n")
+        self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_sizer.Add(self.txtbox_sizer, 2, wx.EXPAND)
+
+        self.SetSizer(self.panel_sizer)
+        self.panel_sizer.Fit(self)
+        self.Show()
+
+
+    def evt_text(self, event):
+        pass
+
+    def evt_char(self, event):
+        pass
 
 
 if __name__ == "__main__":

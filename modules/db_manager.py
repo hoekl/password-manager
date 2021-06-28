@@ -71,15 +71,6 @@ class LoginData:
         if doc != None:
             self.data = doc
 
-    def format_data(self):
-        list_keys = list(self.data.keys())
-        list_values = list(self.data.values())
-        list_keys.pop(0)
-        list_keys.pop(0)
-        list_values.pop(0)
-        list_values.pop(0)
-
-        return list_keys, list_values
 
 
 if __name__ == "__main__":
