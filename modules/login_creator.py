@@ -64,7 +64,7 @@ class PWGenWindow(wx.Dialog):
         for object in objects:
             self.main_sizer.Add(object, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
-    def set_pw_length(self):
+    def set_pw_length(self, event):
         self.pw_length = self.spin_input.GetValue()
 
     def set_pw_options(self, options):
