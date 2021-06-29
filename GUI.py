@@ -1,7 +1,7 @@
-from typing import List
 import wx
 import pprint
 import ctypes
+
 from modules import login_creator as login
 from modules import db_manager as db_ops
 import time
@@ -46,42 +46,53 @@ class ListPanel(wx.Panel):
 
     def on_list_box(self, event):
         string = event.GetEventObject().GetStringSelection()
-        self.rpanel.getDict(string)
+        self.rpanel.get_data(string)
+        self.Parent.SendSizeEvent()
+
 
 class RightPanel(wx.Panel):
     def __init__(self, parent):
         super().__init__(parent)
         self.number_of_fields = 0
         self.frame = parent
-        self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
-        while self.number_of_fields < 6:
+        self.txtbox_sizer = wx.GridBagSizer(0, 0)
+        while self.number_of_fields < 14:
             label = wx.StaticText(self)
             field = wx.TextCtrl(self)
-            self.txtbox_sizer.Add(label, 1, wx.EXPAND | wx.ALL, 0)
-            self.txtbox_sizer.Add(field, 3, wx.EXPAND | wx.BOTTOM, 10)
+            self.txtbox_sizer.Add(
+                label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=0
+            )
+            self.txtbox_sizer.Add(
+                field,
+                pos=(self.number_of_fields, 1),
+                flag=wx.EXPAND | wx.BOTTOM,
+                border=10,
+            )
             self.Bind(wx.EVT_TEXT, self.evt_text, field)
             self.Bind(wx.EVT_CHAR, self.evt_char, field)
-            self.number_of_fields +=1
+            self.number_of_fields += 2
 
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_sizer.Add(self.txtbox_sizer, 2, wx.EXPAND)
+        self.panel_sizer.Add(self.txtbox_sizer, 3, wx.EXPAND)
 
         self.SetSizer(self.panel_sizer)
-        self.panel_sizer.Fit(self)
-        self.Show()
+        self.Hide()
 
-    def getDict(self, string):
+    def get_data(self, string):
+        self.Hide()
+        self.data_obj = None
         uID = db.get_doc_id(string)
         doc = db.get_doc_by_id(uID)
-        data_dict = db_ops.LoginData(doc)
+        self.data_obj = db_ops.LoginData(doc)
         tic = time.perf_counter()
-        self.on_view(data_dict.data)
+        self.on_view(self.data_obj.data)
         toc = time.perf_counter()
+        self.Show()
+        self.frame.SendSizeEvent()
         print(f"Function executed in {toc-tic:0.4f} seconds")
 
-
     def on_view(self, data_dict):
-        dict_length = len(data_dict)
+        dict_length = len(data_dict) * 2
         if dict_length == self.number_of_fields:
             self.add_data_to_view(data_dict)
         elif dict_length > self.number_of_fields:
@@ -108,15 +119,20 @@ class RightPanel(wx.Panel):
             i += 1
 
     def add_field(self):
-        self.number_of_fields += 1
+        self.number_of_fields += 2
         new_label = wx.StaticText(self)
         new_field = wx.TextCtrl(self)
         self.Bind(wx.EVT_CHAR, self.evt_char, new_field)
         self.Bind(wx.EVT_TEXT, self.evt_text, new_field)
-        self.txtbox_sizer.Add(new_label, 1, wx.EXPAND | wx.ALL, 0)
-        self.txtbox_sizer.Add(new_field, 3, wx.EXPAND | wx.BOTTOM, 10)
-        self.frame.sizer.Layout()
-        self.frame.Fit()
+        self.txtbox_sizer.Add(
+            new_label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=0
+        )
+        self.txtbox_sizer.Add(
+            new_field,
+            pos=(self.number_of_fields, 1),
+            flag=wx.EXPAND | wx.BOTTOM,
+            border=10,
+        )
 
     def remove_field(self):
         if self.txtbox_sizer.GetChildren():
@@ -128,9 +144,8 @@ class RightPanel(wx.Panel):
             self.txtbox_sizer.Hide(field2)
             field.Destroy()
             field2.Destroy()
-            self.number_of_fields -= 1
-            self.frame.sizer.Layout()
-            self.frame.Fit()
+            self.number_of_fields -= 2
+
 
     def evt_text(self, event):
         pass
