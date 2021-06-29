@@ -4,6 +4,7 @@ import pprint
 import ctypes
 from modules import login_creator as login
 from modules import db_manager as db_ops
+import time
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -35,52 +36,32 @@ class ListPanel(wx.Panel):
         list_box = wx.ListBox(
             self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
         )
-
+        self.rpanel = RightPanel(self)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(list_box, 0, wx.EXPAND)
+        self.sizer.Add(self.rpanel, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_LISTBOX, self.on_list_box, list_box)
 
     def on_list_box(self, event):
-        display_panel = LoginsPanel(self)
         string = event.GetEventObject().GetStringSelection()
-        display_panel.create_and_show(string)
+        self.rpanel.getDict(string)
 
-        if self.sizer.GetItemCount() > 1:
-            sizer_item = self.sizer.GetItem(1)
-            panel = sizer_item.GetWindow()
-            self.sizer.Hide(panel)
-            panel.Destroy()
-
-            self.sizer.Add(display_panel, 1, wx.EXPAND)
-        else:
-            self.sizer.Add(display_panel, 1, wx.EXPAND)
-
-        self.sizer.Layout()
-
-
-class LoginsPanel(wx.Panel):
-    def __init__(self, *args, **kw):
-        super(LoginsPanel, self).__init__(*args, **kw)
-
-
-    def create_and_show(self, string):
+class RightPanel(wx.Panel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.number_of_fields = 0
+        self.frame = parent
         self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.entries = []
-
-        uID = db.get_doc_id(string)
-        doc = db.get_doc_by_id(uID)
-        data_dict = db_ops.LoginData(doc)
-        index = 0
-        for key, value in data_dict.data.items():
-            self.label = wx.StaticText(self, label=key)
-            self.entries.append(wx.TextCtrl(self, value=value))
-            self.txtbox_sizer.Add(self.label, 1, wx.EXPAND | wx.ALL, 0)
-            self.txtbox_sizer.Add(self.entries[index], 3, wx.EXPAND | wx.BOTTOM, 10)
-            self.Bind(wx.EVT_TEXT, self.evt_text, self.entries[index])
-            self.Bind(wx.EVT_CHAR, self.evt_char, self.entries[index])
-            index += 1
+        while self.number_of_fields < 6:
+            label = wx.StaticText(self)
+            field = wx.TextCtrl(self)
+            self.txtbox_sizer.Add(label, 1, wx.EXPAND | wx.ALL, 0)
+            self.txtbox_sizer.Add(field, 3, wx.EXPAND | wx.BOTTOM, 10)
+            self.Bind(wx.EVT_TEXT, self.evt_text, field)
+            self.Bind(wx.EVT_CHAR, self.evt_char, field)
+            self.number_of_fields +=1
 
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_sizer.Add(self.txtbox_sizer, 2, wx.EXPAND)
@@ -89,6 +70,67 @@ class LoginsPanel(wx.Panel):
         self.panel_sizer.Fit(self)
         self.Show()
 
+    def getDict(self, string):
+        uID = db.get_doc_id(string)
+        doc = db.get_doc_by_id(uID)
+        data_dict = db_ops.LoginData(doc)
+        tic = time.perf_counter()
+        self.on_view(data_dict.data)
+        toc = time.perf_counter()
+        print(f"Function executed in {toc-tic:0.4f} seconds")
+
+
+    def on_view(self, data_dict):
+        dict_length = len(data_dict)
+        if dict_length == self.number_of_fields:
+            self.add_data_to_view(data_dict)
+        elif dict_length > self.number_of_fields:
+            self.add_field()
+            self.on_view(data_dict)
+        elif dict_length < self.number_of_fields:
+            self.remove_field()
+            self.on_view(data_dict)
+
+    def add_data_to_view(self, data_dict):
+        i = 0
+        key_index = 0
+        value_index = 0
+        dict_keys = list(data_dict.keys())
+        dict_values = list(data_dict.values())
+        for sizer_item in self.txtbox_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if i % 2 == 0:
+                item.SetLabel(dict_keys[key_index])
+                key_index += 1
+            else:
+                item.SetLabel(dict_values[value_index])
+                value_index += 1
+            i += 1
+
+    def add_field(self):
+        self.number_of_fields += 1
+        new_label = wx.StaticText(self)
+        new_field = wx.TextCtrl(self)
+        self.Bind(wx.EVT_CHAR, self.evt_char, new_field)
+        self.Bind(wx.EVT_TEXT, self.evt_text, new_field)
+        self.txtbox_sizer.Add(new_label, 1, wx.EXPAND | wx.ALL, 0)
+        self.txtbox_sizer.Add(new_field, 3, wx.EXPAND | wx.BOTTOM, 10)
+        self.frame.sizer.Layout()
+        self.frame.Fit()
+
+    def remove_field(self):
+        if self.txtbox_sizer.GetChildren():
+            sizer_item = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
+            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 2)
+            field = sizer_item.GetWindow()
+            field2 = sizer_item2.GetWindow()
+            self.txtbox_sizer.Hide(field)
+            self.txtbox_sizer.Hide(field2)
+            field.Destroy()
+            field2.Destroy()
+            self.number_of_fields -= 1
+            self.frame.sizer.Layout()
+            self.frame.Fit()
 
     def evt_text(self, event):
         pass
