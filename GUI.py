@@ -36,21 +36,20 @@ class ListPanel(wx.Panel):
         list_box = wx.ListBox(
             self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
         )
-        list_box.SetScrollbar(20,20,50,50)
+        list_box.SetScrollbar(20, 20, 50, 50)
         self.rpanel = RightPanel(self)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(list_box, 0, wx.EXPAND)
-        self.sizer.AddStretchSpacer()
         self.sizer.Add(self.rpanel, 0, wx.EXPAND)
-        self.sizer.AddStretchSpacer()
         self.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_LISTBOX, self.on_list_box, list_box)
 
     def on_list_box(self, event):
         string = event.GetEventObject().GetStringSelection()
+        self.rpanel.Freeze()
         self.rpanel.get_data(string)
-        self.Parent.SendSizeEvent()
+        self.rpanel.Thaw()
 
 
 class RightPanel(wx.Panel):
@@ -64,7 +63,10 @@ class RightPanel(wx.Panel):
             label = wx.StaticText(self)
             field = wx.TextCtrl(self)
             self.txtbox_sizer.Add(
-                label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=10
+                label,
+                pos=(self.number_of_fields, 0),
+                flag=wx.EXPAND | wx.ALL,
+                border=10,
             )
             self.txtbox_sizer.Add(
                 field,
@@ -76,10 +78,21 @@ class RightPanel(wx.Panel):
             self.Bind(wx.EVT_CHAR, self.evt_char, field)
             self.number_of_fields += 2
 
-        self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTRE)
+        self.edit_button = wx.Button(self, label="Edit", size=(100, 50))
+        self.edit_button.Bind(wx.EVT_BUTTON, self.set_editable)
+        self.save_button = wx.Button(self, label="Save", size=(100, 50))
+        self.save_button.Bind(wx.EVT_BUTTON, self.save_edits)
 
+        self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.panel_sizer.AddStretchSpacer()
+        self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
+        self.bounding_sizer.Add(self.edit_button, 0, wx.ALIGN_CENTER, border=50)
+        self.bounding_sizer.Add(self.save_button, 0, wx.ALIGN_CENTER, border=50)
+        self.panel_sizer.Add(self.bounding_sizer,3 , wx.ALIGN_CENTER)
+        self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
+        self.save_button.Hide()
         self.Hide()
 
     def add_field(self):
@@ -89,7 +102,10 @@ class RightPanel(wx.Panel):
         self.Bind(wx.EVT_CHAR, self.evt_char, new_field)
         self.Bind(wx.EVT_TEXT, self.evt_text, new_field)
         self.txtbox_sizer.Add(
-            new_label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=10
+            new_label,
+            pos=(self.number_of_fields, 0),
+            flag=wx.EXPAND | wx.ALL,
+            border=10,
         )
         self.txtbox_sizer.Add(
             new_field,
@@ -109,7 +125,6 @@ class RightPanel(wx.Panel):
             field.Destroy()
             field2.Destroy()
             self.number_of_fields -= 2
-
 
     def get_data(self, string):
         self.Hide()
@@ -151,9 +166,36 @@ class RightPanel(wx.Panel):
                 item.SetLabel(text)
                 size = item.GetSizeFromText(text)
                 item.SetMinSize(size)
+                item.SetEditable(False)
                 value_index += 1
             i += 1
+        print(self.txtbox_sizer.GetItemCount())
 
+    def set_editable(self, event):
+        i = 0
+        for sizer_item in self.txtbox_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if i % 2 == 0:
+                pass
+            else:
+                item.SetEditable(True)
+            i += 1
+        self.edit_button.Hide()
+        self.save_button.Show()
+        self.bounding_sizer.Layout()
+
+    def save_edits(self, event):
+        i = 0
+        for sizer_item in self.txtbox_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if i % 2 == 0:
+                pass
+            else:
+                item.SetEditable(False)
+            i += 1
+        self.save_button.Hide()
+        self.edit_button.Show()
+        self.bounding_sizer.Layout()
 
     def evt_text(self, event):
         pass
@@ -168,7 +210,7 @@ if __name__ == "__main__":
     app = wx.App()
     db = db_ops.DataBase("mock_data")
     frm = BaseFrame(None, title="   Password Manager")
-    frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
+    frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
     frm.Show()
     app.MainLoop()
