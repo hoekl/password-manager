@@ -7,9 +7,9 @@ class MainPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(MainPanel, self).__init__(*args, **kw)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        launch_dialog = wx.Button(self, label="Generate Password")
-        launch_dialog.Bind(wx.EVT_BUTTON, self.on_generate)
-        main_sizer.Add(launch_dialog, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        launch_dialog_btn = wx.Button(self, label="Generate Password")
+        launch_dialog_btn.Bind(wx.EVT_BUTTON, self.on_generate)
+        main_sizer.Add(launch_dialog_btn, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         self.SetSizer(main_sizer)
 
     def on_generate(self, event):
@@ -38,6 +38,7 @@ class PWGenWindow(wx.Dialog):
             max=24,
             initial=self.pw_length,
         )
+        self.copy_button = wx.Button(self, label="Copy", size=(100,50))
         self.choices_box = wx.CheckListBox(
             self,
             pos=(50, 50),
@@ -45,13 +46,21 @@ class PWGenWindow(wx.Dialog):
         )
         self.choices_box.SetCheckedItems((0, 1, 2))
         self.generate_button.Bind(wx.EVT_BUTTON, self.generate_pw)
+        self.copy_button.Bind(wx.EVT_BUTTON, self.copy_pw)
         self.spin_input.Bind(wx.EVT_SPINCTRL, self.set_pw_length)
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sub_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.sub_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.sub_sizer1.Add(self.txt_ctrl, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer1.AddSpacer(10)
+        self.sub_sizer1.Add(self.copy_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer2.Add(self.generate_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer2.AddSpacer(10)
+        self.sub_sizer2.Add(self.spin_input, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
         self.objects = [
-            self.txt_ctrl,
-            self.generate_button,
-            self.spin_input,
+            self.sub_sizer1,
+            self.sub_sizer2,
             self.choices_box,
         ]
 
@@ -62,7 +71,7 @@ class PWGenWindow(wx.Dialog):
 
     def add_to_sizer(self, objects):
         for object in objects:
-            self.main_sizer.Add(object, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+            self.main_sizer.Add(object, wx.SizerFlags().Centre().Border(wx.ALL, 15))
 
     def set_pw_length(self, event):
         self.pw_length = self.spin_input.GetValue()
@@ -84,6 +93,10 @@ class PWGenWindow(wx.Dialog):
         )
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
+
+    def copy_pw(self, event):
+        self.txt_ctrl.SelectAll()
+        self.txt_ctrl.Copy()
 
 
 if __name__ == "__main__":
