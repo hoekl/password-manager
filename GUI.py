@@ -36,10 +36,13 @@ class ListPanel(wx.Panel):
         list_box = wx.ListBox(
             self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
         )
+        list_box.SetScrollbar(20,20,50,50)
         self.rpanel = RightPanel(self)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(list_box, 0, wx.EXPAND)
+        self.sizer.AddStretchSpacer()
         self.sizer.Add(self.rpanel, 0, wx.EXPAND)
+        self.sizer.AddStretchSpacer()
         self.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_LISTBOX, self.on_list_box, list_box)
@@ -56,11 +59,12 @@ class RightPanel(wx.Panel):
         self.number_of_fields = 0
         self.frame = parent
         self.txtbox_sizer = wx.GridBagSizer(0, 0)
+
         while self.number_of_fields < 14:
             label = wx.StaticText(self)
             field = wx.TextCtrl(self)
             self.txtbox_sizer.Add(
-                label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=0
+                label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=10
             )
             self.txtbox_sizer.Add(
                 field,
@@ -73,10 +77,39 @@ class RightPanel(wx.Panel):
             self.number_of_fields += 2
 
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_sizer.Add(self.txtbox_sizer, 3, wx.EXPAND)
+        self.panel_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTRE)
 
         self.SetSizer(self.panel_sizer)
         self.Hide()
+
+    def add_field(self):
+        self.number_of_fields += 2
+        new_label = wx.StaticText(self)
+        new_field = wx.TextCtrl(self)
+        self.Bind(wx.EVT_CHAR, self.evt_char, new_field)
+        self.Bind(wx.EVT_TEXT, self.evt_text, new_field)
+        self.txtbox_sizer.Add(
+            new_label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=10
+        )
+        self.txtbox_sizer.Add(
+            new_field,
+            pos=(self.number_of_fields, 1),
+            flag=wx.EXPAND | wx.BOTTOM,
+            border=10,
+        )
+
+    def remove_field(self):
+        if self.txtbox_sizer.GetChildren():
+            sizer_item = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
+            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 2)
+            field = sizer_item.GetWindow()
+            field2 = sizer_item2.GetWindow()
+            self.txtbox_sizer.Hide(field)
+            self.txtbox_sizer.Hide(field2)
+            field.Destroy()
+            field2.Destroy()
+            self.number_of_fields -= 2
+
 
     def get_data(self, string):
         self.Hide()
@@ -114,37 +147,12 @@ class RightPanel(wx.Panel):
                 item.SetLabel(dict_keys[key_index])
                 key_index += 1
             else:
-                item.SetLabel(dict_values[value_index])
+                text = dict_values[value_index]
+                item.SetLabel(text)
+                size = item.GetSizeFromText(text)
+                item.SetMinSize(size)
                 value_index += 1
             i += 1
-
-    def add_field(self):
-        self.number_of_fields += 2
-        new_label = wx.StaticText(self)
-        new_field = wx.TextCtrl(self)
-        self.Bind(wx.EVT_CHAR, self.evt_char, new_field)
-        self.Bind(wx.EVT_TEXT, self.evt_text, new_field)
-        self.txtbox_sizer.Add(
-            new_label, pos=(self.number_of_fields, 0), flag=wx.EXPAND | wx.ALL, border=0
-        )
-        self.txtbox_sizer.Add(
-            new_field,
-            pos=(self.number_of_fields, 1),
-            flag=wx.EXPAND | wx.BOTTOM,
-            border=10,
-        )
-
-    def remove_field(self):
-        if self.txtbox_sizer.GetChildren():
-            sizer_item = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
-            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 2)
-            field = sizer_item.GetWindow()
-            field2 = sizer_item2.GetWindow()
-            self.txtbox_sizer.Hide(field)
-            self.txtbox_sizer.Hide(field2)
-            field.Destroy()
-            field2.Destroy()
-            self.number_of_fields -= 2
 
 
     def evt_text(self, event):
