@@ -59,6 +59,9 @@ class DataBase:
             link_dict.update({doc["service name"]: {"id": doc["_id"]}})
         self.id_dict = link_dict
 
+    def put(self, doc):
+        self.db.put(doc)
+
     def check_is_db(self):
         try:
             assert isinstance(self.db, couchdb2.Database)

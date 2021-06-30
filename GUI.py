@@ -2,6 +2,8 @@ import wx
 import pprint
 import ctypes
 
+from wx.core import FULL_REPAINT_ON_RESIZE
+
 from modules import login_creator as login
 from modules import db_manager as db_ops
 import time
@@ -17,7 +19,7 @@ class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
         self.CreateStatusBar()
-        notebook_panel = wx.Notebook(self)
+        notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
         first_panel = login.MainPanel(notebook_panel)
         second_panel = ListPanel(notebook_panel)
         notebook_panel.AddPage(first_panel, "New Login", True)
@@ -26,6 +28,7 @@ class BaseFrame(wx.Frame):
         frame_sizer = wx.BoxSizer(wx.VERTICAL)
         frame_sizer.Add(first_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
         frame_sizer.Add(second_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+
 
 
 class ListPanel(wx.Panel):
@@ -89,7 +92,7 @@ class RightPanel(wx.Panel):
         self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
         self.bounding_sizer.Add(self.edit_button, 0, wx.ALIGN_CENTER, border=50)
         self.bounding_sizer.Add(self.save_button, 0, wx.ALIGN_CENTER, border=50)
-        self.panel_sizer.Add(self.bounding_sizer,3 , wx.ALIGN_CENTER)
+        self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
         self.save_button.Hide()
@@ -164,6 +167,7 @@ class RightPanel(wx.Panel):
             else:
                 text = dict_values[value_index]
                 item.SetLabel(text)
+                item.SetName(dict_keys[value_index])
                 size = item.GetSizeFromText(text)
                 item.SetMinSize(size)
                 item.SetEditable(False)
@@ -186,16 +190,23 @@ class RightPanel(wx.Panel):
 
     def save_edits(self, event):
         i = 0
+        new_dict = {}
         for sizer_item in self.txtbox_sizer.__iter__():
             item = sizer_item.GetWindow()
             if i % 2 == 0:
                 pass
             else:
+                key = item.GetName()
+                value = item.GetValue()
+                kv_pair = {key: value}
+                new_dict.update(kv_pair)
                 item.SetEditable(False)
             i += 1
         self.save_button.Hide()
         self.edit_button.Show()
         self.bounding_sizer.Layout()
+        db.put(new_dict)
+        print(new_dict)
 
     def evt_text(self, event):
         pass
@@ -209,7 +220,7 @@ if __name__ == "__main__":
     # frame, show it, and start the event loop.
     app = wx.App()
     db = db_ops.DataBase("mock_data")
-    frm = BaseFrame(None, title="   Password Manager")
+    frm = BaseFrame(None,  title="   Password Manager")
     frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
     frm.Show()
