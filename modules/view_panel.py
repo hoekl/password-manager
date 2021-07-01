@@ -11,6 +11,10 @@ class ViewPanel(wx.Panel):
         self.number_of_fields = 0
         self.frame = parent
         self.txtbox_sizer = wx.GridBagSizer(0, 0)
+        self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
 
         while self.number_of_fields < 14:
             label = wx.StaticText(self)
@@ -30,20 +34,27 @@ class ViewPanel(wx.Panel):
             self.number_of_fields += 2
 
         self.edit_button = wx.Button(self, label="Edit", size=(100, 50))
-        self.edit_button.Bind(wx.EVT_BUTTON, self.set_editable)
         self.save_button = wx.Button(self, label="Save", size=(100, 50))
+        self.reveal_pw_btn = wx.Button(self, label="Show Password", size=(250,50))
+        self.hide_pw_btn = wx.Button(self, label="Hide Password", size=(250,50))
+        self.edit_button.Bind(wx.EVT_BUTTON, self.set_editable)
         self.save_button.Bind(wx.EVT_BUTTON, self.save_edits)
+        self.reveal_pw_btn.Bind(wx.EVT_BUTTON, self.reveal_pw)
+        self.hide_pw_btn.Bind(wx.EVT_BUTTON, self.hide_pw)
 
-        self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
+
         self.panel_sizer.AddStretchSpacer()
         self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
-        self.bounding_sizer.Add(self.edit_button, 0, wx.ALIGN_CENTER, border=50)
-        self.bounding_sizer.Add(self.save_button, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.edit_button, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.save_button, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(self.reveal_pw_btn, 0, wx.ALIGN_CENTER, border=50)
+        self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
         self.save_button.Hide()
+        self.hide_pw_btn.Hide()
         self.Hide()
 
     def add_field(self):
@@ -80,6 +91,7 @@ class ViewPanel(wx.Panel):
         tic = time.perf_counter()
 
         self.create_view(data_dict)
+        #self.temp_ctrl.Hide()
 
         toc = time.perf_counter()
         self.Show()
@@ -89,13 +101,28 @@ class ViewPanel(wx.Panel):
     def create_view(self, data_dict):
         dict_length = len(data_dict) * 2
         if dict_length == self.number_of_fields:
+            self.remove_pw_field()
             self.add_data_to_view(data_dict)
+            self.txtbox_sizer.Layout()
         elif dict_length > self.number_of_fields:
             self.add_field()
             self.create_view(data_dict)
         elif dict_length < self.number_of_fields:
             self.remove_field()
             self.create_view(data_dict)
+
+    def remove_pw_field(self):
+        self.temp_ctrl = wx.TextCtrl(self, value="Test")
+
+        for sizer_item in self.txtbox_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if item.GetName() == "password":
+                self.txtbox_sizer.Replace(item, self.temp_ctrl)
+                #ctrl.Hide()
+                item.Hide()
+                item.Destroy()
+
+        #self.temp_ctrl.Hide()
 
     def add_data_to_view(self, data_dict):
         i = 0
@@ -117,6 +144,28 @@ class ViewPanel(wx.Panel):
                 item.SetEditable(False)
                 value_index += 1
             i += 1
+        print(self.txtbox_sizer.GetItemCount())
+        print(self.panel_sizer.GetItemCount())
+        self.panel_sizer.Layout()
+        self.set_style_pw()
+
+    def set_style_pw(self):
+        i = 0
+        for item in self.txtbox_sizer.__iter__():
+            if i % 2 == 0:
+                pass
+            else:
+                ctrl = item.GetWindow()
+                if ctrl.GetName() == "password":
+                    pw_ctrl = wx.TextCtrl(self, value="abcdefg", style= wx.TE_READONLY | wx.TE_PASSWORD)
+                    pw_ctrl.SetName("password")
+                    self.txtbox_sizer.Replace(ctrl, pw_ctrl)
+                    ctrl.Hide()
+                    ctrl.Destroy()
+            i += 1
+
+
+
 
     def set_editable(self, event):
         i = 0
@@ -151,11 +200,28 @@ class ViewPanel(wx.Panel):
         db_ops.DataBase.put(db, new_dict)
         print(new_dict)
 
-    def evt_text(self, event):
+    def reveal_pw(self, event):
+        i = 0
+        for sizer_item in self.txtbox_sizer.__iter__():
+            if i % 2 == 0:
+                pass
+            else:
+                item = sizer_item.GetWindow()
+                lbl = item.GetName()
+                if lbl == "password":
+                    s = item.GetWindowStyleFlag()
+                    print(s)
+                    item.SetWindowStyleFlag(s + wx.TE_PASSWORD)
+                    item.Show()
+            i += 1
+            self.frame.Refresh()
+            self.frame.SendSizeEvent()
+
+
+
+    def hide_pw(self, event):
         pass
 
-    def evt_char(self, event):
-        pass
 
 
 if __name__ == "__main__":
