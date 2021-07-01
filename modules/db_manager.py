@@ -46,11 +46,13 @@ class DataBase:
     def get_doc_id(self, service_name):
         doc = self.id_dict.get(service_name)
         uID = doc["id"]
+
         return uID
 
     def get_doc_by_id(self, uID):
         doc = self.db.get(uID, rev=None, revs_info=False, conflicts=False)
         pp.pprint(doc)
+
         return doc
 
     def format_query_response(self, res):
@@ -73,7 +75,6 @@ class LoginData:
     def __init__(self, doc=None):
         if doc != None:
             self.data = doc
-
 
 
 if __name__ == "__main__":
