@@ -48,12 +48,12 @@ class ListPanel(wx.Panel):
 
     def on_select_item(self, event):
         string = event.GetEventObject().GetStringSelection()
-        self.view_panel.Freeze()
+        self.Freeze()
         uID = db.get_doc_id(string)
         doc = db.get_doc_by_id(uID)
         self.data_obj = db_ops.LoginData(doc)
         self.view_panel.show_data(self.data_obj.data)
-        self.view_panel.Thaw()
+        self.Thaw()
 
 
 if __name__ == "__main__":
