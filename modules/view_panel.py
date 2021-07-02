@@ -112,11 +112,11 @@ class ViewPanel(wx.Panel):
             self.create_view(data_dict)
 
     def remove_pw_field(self):
-        self.temp_ctrl = wx.TextCtrl(self, value="Test")
 
         for sizer_item in self.txtbox_sizer.__iter__():
             item = sizer_item.GetWindow()
             if item.GetName() == "password":
+                self.temp_ctrl = wx.TextCtrl(self, value="Test")
                 self.txtbox_sizer.Replace(item, self.temp_ctrl)
                 #ctrl.Hide()
                 item.Hide()
@@ -144,8 +144,6 @@ class ViewPanel(wx.Panel):
                 item.SetEditable(False)
                 value_index += 1
             i += 1
-        print(self.txtbox_sizer.GetItemCount())
-        print(self.panel_sizer.GetItemCount())
         self.panel_sizer.Layout()
         self.set_style_pw()
 
