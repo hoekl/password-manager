@@ -75,6 +75,7 @@ class LoginData:
     def __init__(self, doc=None):
         if doc != None:
             self.data = doc
+            self.password = doc["password"]
 
 
 if __name__ == "__main__":

@@ -6,10 +6,9 @@ db = db_ops.DataBase("mock_data")
 
 
 class ViewPanel(wx.Panel):
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, *agrs, **kw):
+        super().__init__(*agrs, **kw)
         self.number_of_fields = 0
-        self.frame = parent
         self.txtbox_sizer = wx.GridBagSizer(0, 0)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -86,16 +85,16 @@ class ViewPanel(wx.Panel):
             field2.Destroy()
             self.number_of_fields -= 2
 
-    def show_data(self, data_dict):
+    def show_data(self, doc):
         self.Hide()
         tic = time.perf_counter()
 
-        self.create_view(data_dict)
-        #self.temp_ctrl.Hide()
+        self.current_dataobj = db_ops.LoginData(doc)
+
+        self.create_view(self.current_dataobj.data)
 
         toc = time.perf_counter()
         self.Show()
-        self.frame.SendSizeEvent()
         print(f"Function executed in {toc-tic:0.4f} seconds")
 
     def create_view(self, data_dict):
@@ -118,11 +117,9 @@ class ViewPanel(wx.Panel):
             if item.GetName() == "password":
                 self.temp_ctrl = wx.TextCtrl(self, value="Test")
                 self.txtbox_sizer.Replace(item, self.temp_ctrl)
-                #ctrl.Hide()
                 item.Hide()
                 item.Destroy()
 
-        #self.temp_ctrl.Hide()
 
     def add_data_to_view(self, data_dict):
         i = 0
@@ -144,7 +141,7 @@ class ViewPanel(wx.Panel):
                 item.SetEditable(False)
                 value_index += 1
             i += 1
-        self.panel_sizer.Layout()
+
         self.set_style_pw()
 
     def set_style_pw(self):
@@ -161,8 +158,6 @@ class ViewPanel(wx.Panel):
                     ctrl.Hide()
                     ctrl.Destroy()
             i += 1
-
-
 
 
     def set_editable(self, event):
