@@ -32,28 +32,28 @@ class ViewPanel(wx.Panel):
             )
             self.number_of_fields += 2
 
-        self.edit_button = wx.Button(self, label="Edit", size=(100, 50))
-        self.save_button = wx.Button(self, label="Save", size=(100, 50))
-        self.reveal_pw_btn = wx.Button(self, label="Show Password", size=(250,50))
-        self.hide_pw_btn = wx.Button(self, label="Hide Password", size=(250,50))
-        self.edit_button.Bind(wx.EVT_BUTTON, self.set_editable)
-        self.save_button.Bind(wx.EVT_BUTTON, self.save_edits)
-        self.reveal_pw_btn.Bind(wx.EVT_BUTTON, self.reveal_pw)
-        self.hide_pw_btn.Bind(wx.EVT_BUTTON, self.hide_pw)
+        self.btn_edit = wx.Button(self, label="Edit", size=(100, 50))
+        self.btn_save = wx.Button(self, label="Save", size=(100, 50))
+        self.btn_show_pw = wx.Button(self, label="Show Password", size=(250,50))
+        self.btn_hide_pw = wx.Button(self, label="Hide Password", size=(250,50))
+        self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
+        self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
+        self.btn_show_pw.Bind(wx.EVT_BUTTON, self.show_pw)
+        self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
 
 
         self.panel_sizer.AddStretchSpacer()
         self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
-        self.button_sizer.Add(self.edit_button, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(self.save_button, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25,50)
-        self.button_sizer.Add(self.reveal_pw_btn, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
-        self.save_button.Hide()
-        self.hide_pw_btn.Hide()
+        self.btn_save.Hide()
         self.Hide()
 
     def add_field(self):
@@ -87,6 +87,8 @@ class ViewPanel(wx.Panel):
 
     def show_data(self, doc):
         self.Hide()
+        self.btn_hide_pw.Hide()
+        self.btn_show_pw.Show()
         tic = time.perf_counter()
 
         self.current_dataobj = db_ops.LoginData(doc)
@@ -157,6 +159,7 @@ class ViewPanel(wx.Panel):
                     self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                     ctrl.Hide()
                     ctrl.Destroy()
+                    break
             i += 1
 
 
@@ -169,8 +172,8 @@ class ViewPanel(wx.Panel):
             else:
                 item.SetEditable(True)
             i += 1
-        self.edit_button.Hide()
-        self.save_button.Show()
+        self.btn_edit.Hide()
+        self.btn_save.Show()
         self.bounding_sizer.Layout()
 
     def save_edits(self, event):
@@ -187,33 +190,41 @@ class ViewPanel(wx.Panel):
                 new_dict.update(kv_pair)
                 item.SetEditable(False)
             i += 1
-        self.save_button.Hide()
-        self.edit_button.Show()
+        self.btn_save.Hide()
+        self.btn_edit.Show()
         self.bounding_sizer.Layout()
         db_ops.DataBase.put(db, new_dict)
         print(new_dict)
 
-    def reveal_pw(self, event):
+    def show_pw(self, event):
         i = 0
         for sizer_item in self.txtbox_sizer.__iter__():
             if i % 2 == 0:
                 pass
             else:
-                item = sizer_item.GetWindow()
-                lbl = item.GetName()
+                ctrl = sizer_item.GetWindow()
+                lbl = ctrl.GetName()
                 if lbl == "password":
-                    s = item.GetWindowStyleFlag()
-                    print(s)
-                    item.SetWindowStyleFlag(s + wx.TE_PASSWORD)
-                    item.Show()
+                    pw_ctrl = wx.TextCtrl(self, value=self.current_dataobj.password, style=wx.TE_READONLY)
+                    pw_ctrl.SetName("password")
+                    self.txtbox_sizer.Replace(ctrl, pw_ctrl)
+                    ctrl.Hide()
+                    ctrl.Destroy()
+                    self.btn_show_pw.Hide()
+                    self.btn_hide_pw.Show()
+                    self.Parent.Refresh()
+                    self.Parent.SendSizeEvent()
+                    break
             i += 1
-            self.frame.Refresh()
-            self.frame.SendSizeEvent()
 
 
 
     def hide_pw(self, event):
-        pass
+        self.set_style_pw()
+        self.Parent.Refresh()
+        self.Parent.SendSizeEvent()
+        self.btn_hide_pw.Hide()
+        self.btn_show_pw.Show()
 
 
 
