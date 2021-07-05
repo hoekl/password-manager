@@ -36,8 +36,10 @@ class ViewPanel(wx.Panel):
         self.btn_save = wx.Button(self, label="Save", size=(100, 50))
         self.btn_show_pw = wx.Button(self, label="Show Password", size=(250,50))
         self.btn_hide_pw = wx.Button(self, label="Hide Password", size=(250,50))
+        self.btn_copy_pw = wx.Button(self, label="Copy Password", size=(250,50))
         self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
+        self.btn_copy_pw.Bind(wx.EVT_BUTTON, self.copy_pw)
         self.btn_show_pw.Bind(wx.EVT_BUTTON, self.show_pw)
         self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
 
@@ -49,6 +51,8 @@ class ViewPanel(wx.Panel):
         self.button_sizer.Add(25,50)
         self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
@@ -217,14 +221,17 @@ class ViewPanel(wx.Panel):
                     break
             i += 1
 
-
-
     def hide_pw(self, event):
         self.set_style_pw()
         self.Parent.Refresh()
         self.Parent.SendSizeEvent()
         self.btn_hide_pw.Hide()
         self.btn_show_pw.Show()
+
+    def copy_pw(self, event):
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(self.current_dataobj.password))
+            wx.TheClipboard.Close()
 
 
 
