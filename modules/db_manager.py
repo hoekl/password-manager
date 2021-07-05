@@ -74,8 +74,11 @@ class DataBase:
 class LoginData:
     def __init__(self, doc=None):
         if doc != None:
+            self.id = doc.pop("_id")
+            self.rev = doc.pop("_rev")
             self.data = doc
             self.password = doc["password"]
+
 
 
 if __name__ == "__main__":

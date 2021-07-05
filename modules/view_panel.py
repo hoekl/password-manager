@@ -27,7 +27,7 @@ class ViewPanel(wx.Panel):
             self.txtbox_sizer.Add(
                 field,
                 pos=(self.number_of_fields, 1),
-                flag=wx.EXPAND | wx.BOTTOM,
+                flag=wx.EXPAND | wx.ALL,
                 border=10,
             )
             self.number_of_fields += 2
@@ -59,7 +59,7 @@ class ViewPanel(wx.Panel):
         self.SetSizer(self.panel_sizer)
         self.btn_save.Hide()
         self.btn_show_pw.Hide()
-        #self.Hide()
+
 
     def add_field(self):
         self.number_of_fields += 2
@@ -74,7 +74,7 @@ class ViewPanel(wx.Panel):
         self.txtbox_sizer.Add(
             new_field,
             pos=(self.number_of_fields, 1),
-            flag=wx.EXPAND | wx.BOTTOM,
+            flag=wx.EXPAND | wx.ALL,
             border=10,
         )
 
@@ -126,6 +126,8 @@ class ViewPanel(wx.Panel):
 
 
     def add_data_to_view(self, data_dict):
+        parent_size = self.Parent.sizer.GetSize()
+        size_x = parent_size[0]*0.6
         i = 0
         key_index = 0
         value_index = 0
@@ -140,8 +142,9 @@ class ViewPanel(wx.Panel):
                 text = dict_values[value_index]
                 item.SetLabel(text)
                 item.SetName(dict_keys[value_index])
-                size = item.GetSizeFromText(text)
-                item.SetMinSize(size)
+                size_y = item.GetBestHeight(size_x)
+                new_size = (size_x, size_y)
+                item.SetMinSize(new_size)
                 item.SetEditable(False)
                 value_index += 1
             i += 1
