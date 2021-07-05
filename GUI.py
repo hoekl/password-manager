@@ -39,6 +39,7 @@ class ListPanel(wx.Panel):
         )
         list_box.SetScrollbar(20, 20, 50, 50)
         self.view_panel = vp.ViewPanel(self)
+        self.view_panel.Hide()
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(list_box, 0, wx.EXPAND)
         self.sizer.Add(self.view_panel, 0, wx.EXPAND)
@@ -48,6 +49,7 @@ class ListPanel(wx.Panel):
 
     def on_select_item(self, event):
         string = event.GetEventObject().GetStringSelection()
+        self.view_panel.Show()
         self.view_panel.Freeze()
         uID = db.get_doc_id(string)
         doc = db.get_doc_by_id(uID)

@@ -58,7 +58,8 @@ class ViewPanel(wx.Panel):
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
         self.btn_save.Hide()
-        self.Hide()
+        self.btn_show_pw.Hide()
+        #self.Hide()
 
     def add_field(self):
         self.number_of_fields += 2
@@ -90,7 +91,6 @@ class ViewPanel(wx.Panel):
             self.number_of_fields -= 2
 
     def show_data(self, doc):
-        self.Hide()
         self.btn_hide_pw.Hide()
         self.btn_show_pw.Show()
         tic = time.perf_counter()
@@ -100,7 +100,7 @@ class ViewPanel(wx.Panel):
         self.create_view(self.current_dataobj.data)
 
         toc = time.perf_counter()
-        self.Show()
+
         print(f"Function executed in {toc-tic:0.4f} seconds")
 
     def create_view(self, data_dict):
@@ -108,7 +108,6 @@ class ViewPanel(wx.Panel):
         if dict_length == self.number_of_fields:
             self.remove_pw_field()
             self.add_data_to_view(data_dict)
-            self.txtbox_sizer.Layout()
         elif dict_length > self.number_of_fields:
             self.add_field()
             self.create_view(data_dict)
@@ -117,14 +116,13 @@ class ViewPanel(wx.Panel):
             self.create_view(data_dict)
 
     def remove_pw_field(self):
-
         for sizer_item in self.txtbox_sizer.__iter__():
-            item = sizer_item.GetWindow()
-            if item.GetName() == "password":
-                self.temp_ctrl = wx.TextCtrl(self, value="Test")
-                self.txtbox_sizer.Replace(item, self.temp_ctrl)
-                item.Hide()
-                item.Destroy()
+            ctrl = sizer_item.GetWindow()
+            if ctrl.GetName() == "password":
+                self.txtbox_sizer.Hide(ctrl)
+                temp_ctrl = wx.TextCtrl(self)
+                self.txtbox_sizer.Replace(ctrl, temp_ctrl)
+                ctrl.Destroy()
 
 
     def add_data_to_view(self, data_dict):
@@ -151,6 +149,7 @@ class ViewPanel(wx.Panel):
         self.set_style_pw()
 
     def set_style_pw(self):
+
         i = 0
         for item in self.txtbox_sizer.__iter__():
             if i % 2 == 0:
@@ -160,8 +159,8 @@ class ViewPanel(wx.Panel):
                 if ctrl.GetName() == "password":
                     pw_ctrl = wx.TextCtrl(self, value="abcdefg", style= wx.TE_READONLY | wx.TE_PASSWORD)
                     pw_ctrl.SetName("password")
+                    self.txtbox_sizer.Hide(ctrl)
                     self.txtbox_sizer.Replace(ctrl, pw_ctrl)
-                    ctrl.Hide()
                     ctrl.Destroy()
                     break
             i += 1
@@ -209,6 +208,7 @@ class ViewPanel(wx.Panel):
                 ctrl = sizer_item.GetWindow()
                 lbl = ctrl.GetName()
                 if lbl == "password":
+                    self.Freeze()
                     pw_ctrl = wx.TextCtrl(self, value=self.current_dataobj.password, style=wx.TE_READONLY)
                     pw_ctrl.SetName("password")
                     self.txtbox_sizer.Replace(ctrl, pw_ctrl)
@@ -218,15 +218,18 @@ class ViewPanel(wx.Panel):
                     self.btn_hide_pw.Show()
                     self.Parent.Refresh()
                     self.Parent.SendSizeEvent()
+                    self.Thaw()
                     break
             i += 1
 
     def hide_pw(self, event):
+        self.Freeze()
         self.set_style_pw()
         self.Parent.Refresh()
         self.Parent.SendSizeEvent()
         self.btn_hide_pw.Hide()
         self.btn_show_pw.Show()
+        self.Thaw()
 
     def copy_pw(self, event):
         if wx.TheClipboard.Open():
