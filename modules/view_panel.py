@@ -171,6 +171,9 @@ class ViewPanel(wx.Panel):
 
     def set_editable(self, event):
         i = 0
+        self.show_pw(event)
+        self.btn_show_pw.Hide()
+        self.btn_hide_pw.Hide()
         for sizer_item in self.txtbox_sizer.__iter__():
             item = sizer_item.GetWindow()
             if i % 2 == 0:
@@ -185,6 +188,8 @@ class ViewPanel(wx.Panel):
     def save_edits(self, event):
         i = 0
         new_dict = {}
+        new_dict.update({"_id": self.current_dataobj.id})
+        new_dict.update({"_rev": self.current_dataobj.rev})
         for sizer_item in self.txtbox_sizer.__iter__():
             item = sizer_item.GetWindow()
             if i % 2 == 0:
@@ -196,8 +201,10 @@ class ViewPanel(wx.Panel):
                 new_dict.update(kv_pair)
                 item.SetEditable(False)
             i += 1
+        self.hide_pw(event)
         self.btn_save.Hide()
         self.btn_edit.Show()
+        self.btn_show_pw.Show()
         self.bounding_sizer.Layout()
         db_ops.DataBase.put(db, new_dict)
         print(new_dict)
