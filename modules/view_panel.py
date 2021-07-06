@@ -255,9 +255,10 @@ class ViewPanel(wx.Panel):
         confirm_dialog = wx.MessageDialog(self, "Are you sure you want to delete the selected item?", caption="Delete item?", style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT)
         choice_response = confirm_dialog.ShowModal()
         if choice_response == 5100:     # 5100 is response code for OK
-            doc = {}
-            doc.update({"_id": self.current_dataobj.id})
-            doc.update({"_rev": self.current_dataobj.rev})
+            doc = {
+                "_id": self.current_dataobj.id,
+                "_rev": self.current_dataobj.rev
+            }
             db_ops.db.delete(doc)
             item_index = self.Parent.list_box.GetSelection()
             self.Parent.list_box.Delete(item_index)
