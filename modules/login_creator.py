@@ -18,6 +18,13 @@ class MainPanel(wx.Panel):
         dialog.Destroy()
 
 
+class NewLogin(wx.Panel):
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.number_of_fields = 0
+        self.txtbox_sizer = wx.GridBagSizer(0,0)
+        self
+
 class PWGenWindow(wx.Dialog):
     def __init__(self):
         super().__init__(parent=None, title="Generate new password")
