@@ -56,7 +56,8 @@ class ListPanel(wx.Panel):
 
 
     def on_select_item(self, event):
-        string = event.GetEventObject().GetStringSelection()
+        index = self.list_box.GetSelection()
+        string = self.list_box.GetString(index)
         self.view_panel.Show()
         self.view_panel.Freeze()
         uID = db_ops.db.get_doc_id(string)

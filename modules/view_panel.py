@@ -252,14 +252,19 @@ class ViewPanel(wx.Panel):
             wx.TheClipboard.Close()
 
     def on_delete(self, event):
-        doc = {}
-        doc.update({"_id": self.current_dataobj.id})
-        doc.update({"_rev": self.current_dataobj.rev})
-        db_ops.db.delete(doc)
-        item_index = self.Parent.list_box.GetSelection()
-        self.Parent.list_box.Delete(item_index)
-        self.Parent.list_box.SetSelection(item_index)
-        self.Parent.Update()
+        confirm_dialog = wx.MessageDialog(self, "Are you sure you want to delete the selected item?", caption="Delete item?", style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT)
+        choice_response = confirm_dialog.ShowModal()
+        if choice_response == 5100:     # 5100 is response code for OK
+            doc = {}
+            doc.update({"_id": self.current_dataobj.id})
+            doc.update({"_rev": self.current_dataobj.rev})
+            db_ops.db.delete(doc)
+            item_index = self.Parent.list_box.GetSelection()
+            self.Parent.list_box.Delete(item_index)
+            self.Parent.list_box.SetSelection(item_index)
+            self.Parent.on_select_item(None)    # passing None since function requires event
+            self.Parent.Update()                # to be passed but event is not needed
+
 
 
 if __name__ == "__main__":
