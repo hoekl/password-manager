@@ -15,7 +15,7 @@ class ViewPanel(wx.Panel):
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        while self.number_of_fields < 14:
+        while self.number_of_fields < 10:
             label = wx.StaticText(self)
             field = wx.TextCtrl(self)
             self.txtbox_sizer.Add(
@@ -199,8 +199,7 @@ class ViewPanel(wx.Panel):
             else:
                 key = item.GetName()
                 value = item.GetValue()
-                kv_pair = {key: value}
-                new_doc.update(kv_pair)
+                new_doc.update({key: value})
                 item.SetEditable(False)
             i += 1
         self.hide_pw(event)
@@ -265,9 +264,9 @@ class ViewPanel(wx.Panel):
             self.Parent.list_box.Delete(item_index)
             self.Parent.list_box.SetSelection(item_index)
             self.Parent.on_select_item(
-                None
-            )  # passing None since function requires event
-            self.Parent.Update()  # to be passed but event is not needed
+                None    # passing None since function requires event
+            )           # to be passed but event is not needed
+            self.Parent.Update()
 
 
 if __name__ == "__main__":
