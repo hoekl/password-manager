@@ -21,7 +21,7 @@ class MainPanel(wx.Panel):
 class PWGenWindow(wx.Dialog):
     def __init__(self):
         super().__init__(parent=None, title="Generate new password")
-        self.pw_length = 12
+        self.pw_length = 24
         self.SetClientSize(self.FromDIP(wx.Size(500, 200)))
         self.generate_button = wx.Button(self, label="Generate Password")
         self.txt_ctrl = wx.TextCtrl(
@@ -35,7 +35,7 @@ class PWGenWindow(wx.Dialog):
             style=wx.TE_PROCESS_ENTER,
             pos=(5, 15),
             min=8,
-            max=24,
+            max=32,
             initial=self.pw_length,
         )
         self.copy_button = wx.Button(self, label="Copy", size=(100,50))
