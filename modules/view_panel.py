@@ -3,7 +3,7 @@ import time
 from modules import db_manager as db_ops
 
 
-#db = db_ops.DataBase("mock_data")
+# db = db_ops.DataBase("mock_data")
 
 
 class ViewPanel(wx.Panel):
@@ -14,7 +14,6 @@ class ViewPanel(wx.Panel):
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
 
         while self.number_of_fields < 14:
             label = wx.StaticText(self)
@@ -35,10 +34,10 @@ class ViewPanel(wx.Panel):
 
         self.btn_edit = wx.Button(self, label="Edit", size=(100, 50))
         self.btn_save = wx.Button(self, label="Save", size=(100, 50))
-        self.btn_show_pw = wx.Button(self, label="Show Password", size=(250,50))
-        self.btn_hide_pw = wx.Button(self, label="Hide Password", size=(250,50))
-        self.btn_copy_pw = wx.Button(self, label="Copy Password", size=(250,50))
-        self.btn_delete_entry = wx.Button(self, label="Delete", size=(150,50))
+        self.btn_show_pw = wx.Button(self, label="Show Password", size=(250, 50))
+        self.btn_hide_pw = wx.Button(self, label="Hide Password", size=(250, 50))
+        self.btn_copy_pw = wx.Button(self, label="Copy Password", size=(250, 50))
+        self.btn_delete_entry = wx.Button(self, label="Delete", size=(150, 50))
         self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
         self.btn_copy_pw.Bind(wx.EVT_BUTTON, self.copy_pw)
@@ -46,17 +45,16 @@ class ViewPanel(wx.Panel):
         self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
         self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
 
-
         self.panel_sizer.AddStretchSpacer()
         self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
         self.button_sizer.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
@@ -64,7 +62,6 @@ class ViewPanel(wx.Panel):
         self.SetSizer(self.panel_sizer)
         self.btn_save.Hide()
         self.btn_show_pw.Hide()
-
 
     def add_field(self):
         self.number_of_fields += 2
@@ -129,10 +126,9 @@ class ViewPanel(wx.Panel):
                 self.txtbox_sizer.Replace(ctrl, temp_ctrl)
                 ctrl.Destroy()
 
-
     def add_data_to_view(self, data_dict):
         parent_size = self.Parent.sizer.GetSize()
-        size_x = parent_size[0]*0.6
+        size_x = parent_size[0] * 0.6
         i = 0
         key_index = 0
         value_index = 0
@@ -165,14 +161,15 @@ class ViewPanel(wx.Panel):
             else:
                 ctrl = item.GetWindow()
                 if ctrl.GetName() == "password":
-                    pw_ctrl = wx.TextCtrl(self, value="abcdefg", style= wx.TE_READONLY | wx.TE_PASSWORD)
+                    pw_ctrl = wx.TextCtrl(
+                        self, value="abcdefg", style=wx.TE_READONLY | wx.TE_PASSWORD
+                    )
                     pw_ctrl.SetName("password")
                     self.txtbox_sizer.Hide(ctrl)
                     self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                     ctrl.Destroy()
                     break
             i += 1
-
 
     def set_editable(self, event):
         i = 0
@@ -224,7 +221,9 @@ class ViewPanel(wx.Panel):
                 lbl = ctrl.GetName()
                 if lbl == "password":
                     self.Freeze()
-                    pw_ctrl = wx.TextCtrl(self, value=self.current_dataobj.password, style=wx.TE_READONLY)
+                    pw_ctrl = wx.TextCtrl(
+                        self, value=self.current_dataobj.password, style=wx.TE_READONLY
+                    )
                     pw_ctrl.SetName("password")
                     self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                     ctrl.Hide()
@@ -252,20 +251,23 @@ class ViewPanel(wx.Panel):
             wx.TheClipboard.Close()
 
     def on_delete(self, event):
-        confirm_dialog = wx.MessageDialog(self, "Are you sure you want to delete the selected item?", caption="Delete item?", style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT)
+        confirm_dialog = wx.MessageDialog(
+            self,
+            message="Are you sure you want to delete the selected item?",
+            caption="Delete item?",
+            style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT,
+        )
         choice_response = confirm_dialog.ShowModal()
-        if choice_response == 5100:     # 5100 is response code for OK
-            doc = {
-                "_id": self.current_dataobj.id,
-                "_rev": self.current_dataobj.rev
-            }
+        if choice_response == 5100:  # 5100 is response code for OK
+            doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
             db_ops.db.delete(doc)
             item_index = self.Parent.list_box.GetSelection()
             self.Parent.list_box.Delete(item_index)
             self.Parent.list_box.SetSelection(item_index)
-            self.Parent.on_select_item(None)    # passing None since function requires event
-            self.Parent.Update()                # to be passed but event is not needed
-
+            self.Parent.on_select_item(
+                None
+            )  # passing None since function requires event
+            self.Parent.Update()  # to be passed but event is not needed
 
 
 if __name__ == "__main__":
