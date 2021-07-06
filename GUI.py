@@ -33,26 +33,34 @@ class ListPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(ListPanel, self).__init__(*args, **kw)
 
-        choices = db.get_logins_list()
-        list_box = wx.ListBox(
+        choices = db_ops.db.get_logins_list()
+        self.list_box = wx.ListBox(
             self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
         )
-        list_box.SetScrollbar(20, 20, 50, 50)
+        self.list_box.SetScrollbar(20, 20, 50, 50)
         self.view_panel = vp.ViewPanel(self)
         self.view_panel.Hide()
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(list_box, 0, wx.EXPAND)
+        self.sizer.Add(self.list_box, 0, wx.EXPAND)
         self.sizer.Add(self.view_panel, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
-        self.Bind(wx.EVT_LISTBOX, self.on_select_item, list_box)
+        self.Bind(wx.EVT_LISTBOX, self.on_select_item, self.list_box)
+
+    def get_logins_list(self):
+        choices = db_ops.db.get_logins_list()
+        list_box = wx.ListBox(
+            self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
+        )
+        return list_box
+
 
     def on_select_item(self, event):
         string = event.GetEventObject().GetStringSelection()
         self.view_panel.Show()
         self.view_panel.Freeze()
-        uID = db.get_doc_id(string)
-        doc = db.get_doc_by_id(uID)
+        uID = db_ops.db.get_doc_id(string)
+        doc = db_ops.db.get_doc_by_id(uID)
         self.view_panel.show_data(doc)
         self.SendSizeEvent()
         self.view_panel.Thaw()
@@ -64,7 +72,7 @@ if __name__ == "__main__":
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
-    db = db_ops.DataBase("mock_data")
+    #db = db_ops.DataBase("copy_mock_data")
     frm = BaseFrame(None, title="   Password Manager")
     frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))

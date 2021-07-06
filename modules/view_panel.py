@@ -2,7 +2,8 @@ import wx
 import time
 from modules import db_manager as db_ops
 
-db = db_ops.DataBase("mock_data")
+
+#db = db_ops.DataBase("mock_data")
 
 
 class ViewPanel(wx.Panel):
@@ -37,11 +38,13 @@ class ViewPanel(wx.Panel):
         self.btn_show_pw = wx.Button(self, label="Show Password", size=(250,50))
         self.btn_hide_pw = wx.Button(self, label="Hide Password", size=(250,50))
         self.btn_copy_pw = wx.Button(self, label="Copy Password", size=(250,50))
+        self.btn_delete_entry = wx.Button(self, label="Delete", size=(150,50))
         self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
         self.btn_copy_pw.Bind(wx.EVT_BUTTON, self.copy_pw)
         self.btn_show_pw.Bind(wx.EVT_BUTTON, self.show_pw)
         self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
+        self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
 
 
         self.panel_sizer.AddStretchSpacer()
@@ -53,6 +56,8 @@ class ViewPanel(wx.Panel):
         self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25,50)
         self.button_sizer.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25,50)
+        self.button_sizer.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
@@ -206,7 +211,7 @@ class ViewPanel(wx.Panel):
         self.btn_edit.Show()
         self.btn_show_pw.Show()
         self.bounding_sizer.Layout()
-        db_ops.DataBase.put(db, new_dict)
+        db_ops.db.put(new_dict)
         print(new_dict)
 
     def show_pw(self, event):
@@ -246,6 +251,15 @@ class ViewPanel(wx.Panel):
             wx.TheClipboard.SetData(wx.TextDataObject(self.current_dataobj.password))
             wx.TheClipboard.Close()
 
+    def on_delete(self, event):
+        doc = {}
+        doc.update({"_id": self.current_dataobj.id})
+        doc.update({"_rev": self.current_dataobj.rev})
+        db_ops.db.delete(doc)
+        item_index = self.Parent.list_box.GetSelection()
+        self.Parent.list_box.Delete(item_index)
+        self.Parent.list_box.SetSelection(item_index)
+        self.Parent.Update()
 
 
 if __name__ == "__main__":
