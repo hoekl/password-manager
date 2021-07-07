@@ -1,5 +1,6 @@
 import secrets
 import string
+from couchdb2 import CouchDB2Exception
 import wx
 import hashlib
 from modules import db_manager as db_ops
@@ -23,11 +24,24 @@ class MainPanel(wx.Panel):
         dialog.ShowModal()
         dialog.Destroy()
 
+    def on_refresh(self):
+        empty_panel = NewLogin(self)
+        sizer_items = self.main_sizer.GetChildren()
+        sizer_item = sizer_items[0]
+        old_panel = sizer_item.GetWindow()
+        self.Freeze()
+        self.main_sizer.Replace(old_panel, empty_panel)
+        old_panel.Destroy()
+        self.main_sizer.Layout()
+        self.Thaw()
+        self.Parent.Parent.refresh()
+
 
 class NewLogin(wx.Panel):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.number_of_fields = 0
+        self.doc = {}
         self.txtbox_sizer = wx.GridBagSizer(0, 0)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -63,9 +77,8 @@ class NewLogin(wx.Panel):
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
 
-    def on_save(self, event):
+    def get_values(self):
         i = 0
-        doc = {}
         for sizer_item in self.txtbox_sizer.__iter__():
             if i % 2 == 0:
                 pass
@@ -73,24 +86,51 @@ class NewLogin(wx.Panel):
                 ctrl = sizer_item.GetWindow()
                 key = ctrl.GetName()
                 value = ctrl.GetValue()
-                if key == None or value == None:
+                if key == "" or value == "":
                     pass
                 else:
-                    doc.update({key: value})
+                    self.doc.update({key: value})
             i += 1
-        if doc:
-            doc_hash = hashlib.sha256(str(doc).encode())
-            hex_hash = doc_hash.hexdigest()
-            str_hash = str(hex_hash)
-            doc.update({"_id": str_hash})
-            print(doc, str_hash)
+
+    def create_UID(self, doc):
+        doc_hash = hashlib.sha256(str(self.doc).encode())
+        hex_hash = doc_hash.hexdigest()
+        str_hash = str(hex_hash)
+        self.doc.update({"_id": str_hash})
+
+    def on_save(self, event):
+        self.get_values()
+        if self.doc.values():
+            print(self.doc.__repr__())
+            self.create_UID(self.doc)
             try:
-                db_ops.db.put(doc)
-                self.Parent.Refresh
+                db_ops.db.put(self.doc)
+                self.on_success()
+                self.Parent.on_refresh()
+
+            except CouchDB2Exception as db_except:
+                print(db_except, "-Document already exists")
             except Exception as e:
-                print(e, "-Document already exists")
+                print(e)
         else:
-            print("Fields can't be empty")
+            self.on_fail()
+
+    def on_success(self):
+        dialog = wx.MessageDialog(
+            self, message="Login saved successfully", caption="Success!", style=wx.OK
+        )
+        dialog.ShowModal()
+        dialog.Destroy()
+
+    def on_fail(self):
+        dialog = wx.MessageDialog(
+            self,
+            message="Something went wrong. Please check your input is valid and try again",
+            caption="Error",
+            style=wx.OK,
+        )
+        dialog.ShowModal()
+        dialog.Destroy()
 
 
 class PWGenWindow(wx.Dialog):

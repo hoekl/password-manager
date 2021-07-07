@@ -257,6 +257,7 @@ class ViewPanel(wx.Panel):
             style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT,
         )
         choice_response = confirm_dialog.ShowModal()
+        confirm_dialog.Destroy()
         if choice_response == 5100:  # 5100 is response code for OK
             doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
             db_ops.db.delete(doc)

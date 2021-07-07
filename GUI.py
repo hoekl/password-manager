@@ -18,15 +18,21 @@ class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
         self.CreateStatusBar()
-        notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
-        first_panel = login.MainPanel(notebook_panel)
-        second_panel = ListPanel(notebook_panel)
-        notebook_panel.AddPage(first_panel, "New Login", True)
-        notebook_panel.AddPage(second_panel, "Logins", True)
+        self.notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
+        first_panel = login.MainPanel(self.notebook_panel)
+        second_panel = ListPanel(self.notebook_panel)
+        self.notebook_panel.AddPage(first_panel, "New Login", True)
+        self.notebook_panel.AddPage(second_panel, "Logins", True)
 
-        frame_sizer = wx.BoxSizer(wx.VERTICAL)
-        frame_sizer.Add(first_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
-        frame_sizer.Add(second_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.frame_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.frame_sizer.Add(first_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.frame_sizer.Add(second_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+
+    def refresh(self):
+        self.notebook_panel.DeletePage(1)
+        new_list_panel = ListPanel(self.notebook_panel)
+        self.notebook_panel.AddPage(new_list_panel, "Logins", False)
+        self.frame_sizer.Add(new_list_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
 
 class ListPanel(wx.Panel):
@@ -54,7 +60,6 @@ class ListPanel(wx.Panel):
         )
         return list_box
 
-
     def on_select_item(self, event):
         index = self.list_box.GetSelection()
         string = self.list_box.GetString(index)
@@ -67,13 +72,11 @@ class ListPanel(wx.Panel):
         self.view_panel.Thaw()
 
 
-
-
 if __name__ == "__main__":
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
-    #db = db_ops.DataBase("copy_mock_data")
+    # db = db_ops.DataBase("copy_mock_data")
     frm = BaseFrame(None, title="   Password Manager")
     frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
