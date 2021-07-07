@@ -6,9 +6,9 @@ import hashlib
 from modules import db_manager as db_ops
 
 
-class MainPanel(wx.Panel):
+class CreateLogin(wx.Panel):
     def __init__(self, *args, **kw):
-        super(MainPanel, self).__init__(*args, **kw)
+        super(CreateLogin, self).__init__(*args, **kw)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.new_login_pnl = NewLogin(self)
         self.launch_dialog_btn = wx.Button(self, label="Generate Password")

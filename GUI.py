@@ -19,7 +19,7 @@ class BaseFrame(wx.Frame):
         super(BaseFrame, self).__init__(*args, **kw)
         self.CreateStatusBar()
         self.notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
-        first_panel = login.MainPanel(self.notebook_panel)
+        first_panel = login.CreateLogin(self.notebook_panel)
         second_panel = ListPanel(self.notebook_panel)
         self.notebook_panel.AddPage(first_panel, "New Login", True)
         self.notebook_panel.AddPage(second_panel, "Logins", True)
