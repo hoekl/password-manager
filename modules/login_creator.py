@@ -55,6 +55,7 @@ class NewLogin(wx.Panel):
         while self.number_of_fields < 5:
             label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields])
             field_box = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
+            label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
             self.txtbox_sizer.Add(
                 label_box,
                 pos=(self.number_of_fields, 0),
@@ -76,6 +77,15 @@ class NewLogin(wx.Panel):
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
+
+    def txtctrl_on_focusloss(self, event):
+        evt_source = event.EventObject
+        label = evt_source.Value
+        source_pos = self.txtbox_sizer.GetItemPosition(evt_source)
+        x_coord = source_pos[0]
+        target_sizer_item = self.txtbox_sizer.FindItemAtPosition((x_coord, 1))
+        target_ctrl = target_sizer_item.GetWindow()
+        target_ctrl.SetName(label)
 
     def get_values(self):
         i = 0
@@ -101,7 +111,6 @@ class NewLogin(wx.Panel):
     def on_save(self, event):
         self.get_values()
         if self.doc.values():
-            print(self.doc.__repr__())
             self.create_UID(self.doc)
             try:
                 db_ops.db.put(self.doc)
