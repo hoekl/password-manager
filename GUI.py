@@ -76,7 +76,6 @@ if __name__ == "__main__":
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
-    # db = db_ops.DataBase("copy_mock_data")
     frm = BaseFrame(None, title="   Password Manager")
     frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
