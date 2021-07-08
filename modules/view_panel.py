@@ -62,9 +62,15 @@ class ViewPanel(wx.Panel):
         self.btn_delete_entry = wx.Button(self, label="Delete", size=(150, 50))
         self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
 
+        self.btn_discard_edits = wx.Button(self, label="Discard Changes", size=(250, 50))
+        self.btn_discard_edits.Bind(wx.EVT_BUTTON, self.discard_edits)
+        self.btn_discard_edits.Hide()
+
         self.button_sizer.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
+        self.button_sizer.Add(self.btn_discard_edits, 0, wx.ALIGN_CENTER, border=50)
+        # self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
@@ -192,6 +198,7 @@ class ViewPanel(wx.Panel):
 
         self.btn_edit.Hide()
         self.btn_save.Show()
+        self.btn_discard_edits.Show()
         self.bounding_sizer.Layout()
 
     def save_edits(self, event):
@@ -246,6 +253,16 @@ class ViewPanel(wx.Panel):
         if wx.TheClipboard.Open():
             wx.TheClipboard.SetData(wx.TextDataObject(self.current_dataobj.password))
             wx.TheClipboard.Close()
+
+    def discard_edits(self, event):
+        self.Parent.on_select_item(event)
+        self.Freeze()
+        self.btn_discard_edits.Hide()
+        self.btn_save.Hide()
+        self.btn_edit.Show()
+        self.bounding_sizer.Layout()
+        self.Thaw()
+
 
     def on_delete(self, event):
         confirm_dialog = wx.MessageDialog(
