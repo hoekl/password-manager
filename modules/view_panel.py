@@ -15,21 +15,7 @@ class ViewPanel(wx.Panel):
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         while self.number_of_fields < 6:
-            label = wx.StaticText(self)
-            field = wx.TextCtrl(self)
-            self.label_sizer.Add(
-                label,
-                1,
-                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-                border=10,
-            )
-            self.txtbox_sizer.Add(
-                field,
-                1,
-                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-                border=10,
-            )
-            self.number_of_fields += 1
+            self.add_field()
 
         self.lbl_and_box_sizer.AddStretchSpacer()
         self.lbl_and_box_sizer.Add(

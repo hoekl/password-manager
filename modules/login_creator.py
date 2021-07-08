@@ -57,26 +57,10 @@ class NewLogin(wx.Panel):
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
 
-        default_choices = ["service name", "website", "email", "username", "password"]
+        self.default_choices = ["service name", "website", "email", "username", "password"]
 
         while self.number_of_fields < 5:
-            label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields])
-            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
-            label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
-            self.label_sizer.Add(
-                label_box,
-                1,
-                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-                border=10,
-            )
-            self.txtbox_sizer.Add(
-                txtbox,
-                1,
-                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-                border=10,
-            )
-
-            self.number_of_fields += 1
+            self.add_field()
 
         self.lbl_and_box_sizer.AddStretchSpacer()
         self.lbl_and_box_sizer.Add(
@@ -94,6 +78,25 @@ class NewLogin(wx.Panel):
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
+
+    def add_field(self):
+        label_box = wx.TextCtrl(self, value=self.default_choices[self.number_of_fields])
+        txtbox = wx.TextCtrl(self, name=self.default_choices[self.number_of_fields])
+        label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
+        self.label_sizer.Add(
+            label_box,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.txtbox_sizer.Add(
+            txtbox,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+
+        self.number_of_fields += 1
 
     def txtctrl_on_focusloss(self, event):
         event.Skip()
