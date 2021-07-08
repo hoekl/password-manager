@@ -42,10 +42,12 @@ class NewLogin(wx.Panel):
         super().__init__(*args, **kw)
         self.number_of_fields = 0
         self.doc = {}
-        self.txtbox_sizer = wx.GridBagSizer(0, 0)
+        self.label_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.lbl_and_box_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.btn_save = wx.Button(self, label="Save")
         self.btn_save.Bind(wx.EVT_BUTTON, self.on_save)
@@ -54,53 +56,61 @@ class NewLogin(wx.Panel):
 
         while self.number_of_fields < 5:
             label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields])
-            field_box = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
+            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
             label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
-            self.txtbox_sizer.Add(
+            self.label_sizer.Add(
                 label_box,
-                pos=(self.number_of_fields, 0),
-                flag=(wx.EXPAND | wx.ALL),
+                1,
+                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
                 border=10,
             )
             self.txtbox_sizer.Add(
-                field_box,
-                pos=(self.number_of_fields, 1),
-                flag=(wx.EXPAND | wx.ALL),
+                txtbox,
+                1,
+                flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
                 border=10,
             )
 
             self.number_of_fields += 1
 
-        self.panel_sizer.AddStretchSpacer()
-        self.bounding_sizer.Add(self.txtbox_sizer, 3, wx.ALIGN_CENTER)
+        self.lbl_and_box_sizer.AddStretchSpacer()
+        self.lbl_and_box_sizer.Add(
+            self.label_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
+        )
+        self.lbl_and_box_sizer.Add(
+            self.txtbox_sizer, 1, wx.ALIGN_CENTRE_VERTICAL, border=10
+        )
+        self.lbl_and_box_sizer.AddStretchSpacer()
+
+        self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTER)
+
+        self.panel_sizer.AddStretchSpacer()
         self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
 
     def txtctrl_on_focusloss(self, event):
+        event.Skip()
         evt_source = event.EventObject
-        label = evt_source.Value
-        source_pos = self.txtbox_sizer.GetItemPosition(evt_source)
-        x_coord = source_pos[0]
-        target_sizer_item = self.txtbox_sizer.FindItemAtPosition((x_coord, 1))
-        target_ctrl = target_sizer_item.GetWindow()
-        target_ctrl.SetName(label)
+        label = evt_source.Label
+        value = evt_source.Value
+        children = self.txtbox_sizer.GetChildren()
+        for sizer_child in children:
+            txtbox = sizer_child.GetWindow()
+            if txtbox.GetName() == label:
+                txtbox.SetName(value)
+                break
 
     def get_values(self):
-        i = 0
         for sizer_item in self.txtbox_sizer.__iter__():
-            if i % 2 == 0:
+            ctrl = sizer_item.GetWindow()
+            key = ctrl.GetName()
+            value = ctrl.GetValue()
+            if key == "" or value == "":
                 pass
             else:
-                ctrl = sizer_item.GetWindow()
-                key = ctrl.GetName()
-                value = ctrl.GetValue()
-                if key == "" or value == "":
-                    pass
-                else:
-                    self.doc.update({key: value})
-            i += 1
+                self.doc.update({key: value})
 
     def create_UID(self, doc):
         doc_hash = hashlib.sha256(str(self.doc).encode())
