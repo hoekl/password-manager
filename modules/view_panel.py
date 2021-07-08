@@ -66,15 +66,21 @@ class ViewPanel(wx.Panel):
         self.btn_discard_edits.Bind(wx.EVT_BUTTON, self.discard_edits)
         self.btn_discard_edits.Hide()
 
+        self.btn_add_field = wx.Button(self, label="Add field", size=(250, 50))
+        self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
+        self.btn_add_field.Hide()
+
         self.button_sizer.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_discard_edits, 0, wx.ALIGN_CENTER, border=50)
-        # self.button_sizer.Add(25, 50)
+
         self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25, 50)
+        self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
         self.button_sizer.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
 
@@ -102,6 +108,25 @@ class ViewPanel(wx.Panel):
             flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
             border=10,
         )
+
+    def add_custom_field(self, event):
+        self.number_of_fields += 1
+        new_label = wx.TextCtrl(self)
+        new_field = wx.TextCtrl(self)
+        new_label.Bind(wx.EVT_KILL_FOCUS, self.set_field_name, new_label)
+        self.label_sizer.Add(
+            new_label,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.txtbox_sizer.Add(
+            new_field,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.Parent.SendSizeEvent()
 
     def remove_field(self):
         if self.label_sizer.GetChildren() and self.txtbox_sizer.GetChildren():
@@ -199,6 +224,7 @@ class ViewPanel(wx.Panel):
         self.btn_edit.Hide()
         self.btn_save.Show()
         self.btn_discard_edits.Show()
+        self.btn_add_field.Show()
         self.bounding_sizer.Layout()
 
     def save_edits(self, event):
@@ -216,9 +242,27 @@ class ViewPanel(wx.Panel):
         self.btn_save.Hide()
         self.btn_edit.Show()
         self.btn_show_pw.Show()
+        self.btn_add_field.Hide()
+        self.btn_discard_edits.Hide()
         self.bounding_sizer.Layout()
         db_ops.db.put(new_doc)
+        self.convert_txtbox()
         print(new_doc)
+
+    def convert_txtbox(self):
+        for sizer_item in self.label_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if item.ClassName == "wxTextCtrl":
+                self.Freeze()
+                value = item.Value
+                static_text = wx.StaticText(
+                    self, label=value, style=wx.TE_READONLY
+                )
+                self.label_sizer.Replace(item, static_text)
+                item.Hide()
+                item.Destroy()
+                self.Parent.SendSizeEvent()
+                self.Thaw()
 
     def show_pw(self, event):
         for sizer_item in self.txtbox_sizer.__iter__():
@@ -263,6 +307,17 @@ class ViewPanel(wx.Panel):
         self.bounding_sizer.Layout()
         self.Thaw()
 
+    def set_field_name(self, event):
+        event.Skip()
+        evt_source = event.EventObject
+        label = evt_source.Name
+        value = evt_source.Value
+        children = self.txtbox_sizer.GetChildren()
+        for sizer_child in children:
+            txtbox = sizer_child.GetWindow()
+            if txtbox.GetName() == label:
+                txtbox.SetName(value)
+                break
 
     def on_delete(self, event):
         confirm_dialog = wx.MessageDialog(
