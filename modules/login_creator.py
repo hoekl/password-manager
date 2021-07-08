@@ -34,7 +34,6 @@ class CreateLogin(wx.Panel):
         old_panel.Destroy()
         self.main_sizer.Layout()
         self.Thaw()
-        self.Parent.Parent.refresh()
 
 
 class NewLogin(wx.Panel):
@@ -52,6 +51,12 @@ class NewLogin(wx.Panel):
         self.btn_save = wx.Button(self, label="Save")
         self.btn_save.Bind(wx.EVT_BUTTON, self.on_save)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25, 50)
+
+        self.btn_discard = wx.Button(self, label="Discard")
+        self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
+        self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
+
         default_choices = ["service name", "website", "email", "username", "password"]
 
         while self.number_of_fields < 5:
@@ -125,6 +130,7 @@ class NewLogin(wx.Panel):
             try:
                 db_ops.db.put(self.doc)
                 self.on_success()
+                self.Parent.Parent.Parent.refresh()
                 self.Parent.on_refresh()
 
             except CouchDB2Exception as db_except:
@@ -133,6 +139,18 @@ class NewLogin(wx.Panel):
                 print(e)
         else:
             self.on_fail()
+
+    def on_discard(self, event):
+        dialog = wx.MessageDialog(
+            self,
+            message="Are you sure you want to clear the input?",
+            caption="Warning!",
+            style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT,
+        )
+        choice_response = dialog.ShowModal()
+        if choice_response == 5100:
+            self.Parent.on_refresh()
+        dialog.Destroy()
 
     def on_success(self):
         dialog = wx.MessageDialog(
