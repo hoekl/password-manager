@@ -117,7 +117,7 @@ class NewLogin(wx.Panel):
             else:
                 self.doc.update({key: value})
 
-    def create_UID(self, doc):
+    def create_UID(self):
         doc_hash = hashlib.sha256(str(self.doc).encode())
         hex_hash = doc_hash.hexdigest()
         str_hash = str(hex_hash)
