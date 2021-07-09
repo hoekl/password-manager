@@ -21,7 +21,7 @@ class BaseFrame(wx.Frame):
         self.notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
         first_panel = login.CreateLogin(self.notebook_panel)
         second_panel = ListPanel(self.notebook_panel)
-        self.notebook_panel.AddPage(first_panel, "New Login", True)
+        self.notebook_panel.AddPage(first_panel, "New Login", False)
         self.notebook_panel.AddPage(second_panel, "Logins", True)
 
         self.frame_sizer = wx.BoxSizer(wx.VERTICAL)

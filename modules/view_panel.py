@@ -201,6 +201,7 @@ class ViewPanel(wx.Panel):
             self.remove_pw_field()
             self.mng_remove_btns()
             self.lbl_and_box_sizer.Hide(self.remove_btn_sizer)
+            self.convert_txtbox()
             self.add_data_to_view(data_dict)
         elif dict_length > self.number_of_fields:
             self.add_field()
@@ -315,17 +316,17 @@ class ViewPanel(wx.Panel):
         print(new_doc)
 
     def convert_txtbox(self):
+        self.Freeze()
         for sizer_item in self.label_sizer.__iter__():
             item = sizer_item.GetWindow()
             if item.ClassName == "wxTextCtrl":
-                self.Freeze()
                 value = item.Value
                 static_text = wx.StaticText(self, label=value, style=wx.TE_READONLY)
                 self.label_sizer.Replace(item, static_text)
                 item.Hide()
                 item.Destroy()
-                self.Parent.SendSizeEvent()
-                self.Thaw()
+        self.Parent.SendSizeEvent()
+        self.Thaw()
 
     def convert_statictxt(self):
         self.Freeze()
