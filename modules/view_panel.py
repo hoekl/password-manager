@@ -164,10 +164,7 @@ class ViewPanel(wx.Panel):
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
-            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN
-            | wx.EXPAND
-            | wx.ALL
-            | wx.ALIGN_LEFT,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
             border=10,
         )
         self.num_rmv_btns += 1
@@ -387,7 +384,25 @@ class ViewPanel(wx.Panel):
                 break
 
     def delete_field(self, event):
-        pass
+        self.Freeze()
+        evt_source = event.EventObject
+        index = int(evt_source.GetName())
+        label_sizer = self.label_sizer.GetItem(index)
+        txtbox_sizer = self.txtbox_sizer.GetItem(index)
+        rmv_button_sizer = self.remove_btn_sizer.GetItem(index)
+        label = label_sizer.GetWindow()
+        txtbox = txtbox_sizer.GetWindow()
+        rmv_button = rmv_button_sizer.GetWindow()
+        self.label_sizer.Hide(label)
+        self.txtbox_sizer.Hide(txtbox)
+        self.remove_btn_sizer.Hide(rmv_button)
+        label.Destroy()
+        txtbox.Destroy()
+        rmv_button.Destroy()
+        self.num_rmv_btns -=1
+        self.number_of_fields -=1
+        self.Layout()
+        self.Thaw()
 
     def on_delete(self, event):
         confirm_dialog = wx.MessageDialog(
