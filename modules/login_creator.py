@@ -40,9 +40,11 @@ class NewLogin(wx.Panel):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.number_of_fields = 0
+        self.num_rmv_btns = 0
         self.doc = {}
         self.label_sizer = wx.BoxSizer(wx.VERTICAL)
         self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.remove_btn_sizer = wx.BoxSizer(wx.VERTICAL)
         self.lbl_and_box_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -62,7 +64,7 @@ class NewLogin(wx.Panel):
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
 
-        self.default_choices = [
+        default_choices = [
             "service name",
             "website",
             "email",
@@ -71,14 +73,20 @@ class NewLogin(wx.Panel):
         ]
 
         while self.number_of_fields < 5:
-            self.add_field()
+            self.add_field(*default_choices)
+            self.add_remove_btn()
 
         self.lbl_and_box_sizer.AddStretchSpacer()
         self.lbl_and_box_sizer.Add(
             self.label_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
         )
         self.lbl_and_box_sizer.Add(
-            self.txtbox_sizer, 1, wx.ALIGN_CENTRE_VERTICAL, border=10
+            self.txtbox_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
+        )
+        self.lbl_and_box_sizer.Add(
+            self.remove_btn_sizer,
+            1,
+            wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALIGN_TOP,
         )
         self.lbl_and_box_sizer.AddStretchSpacer()
 
@@ -90,17 +98,15 @@ class NewLogin(wx.Panel):
         self.panel_sizer.AddStretchSpacer()
         self.SetSizer(self.panel_sizer)
 
-    def add_field(self):
-        try:
-            label_box = wx.TextCtrl(
-                self, value=self.default_choices[self.number_of_fields]
-            )
-            txtbox = wx.TextCtrl(self, name=self.default_choices[self.number_of_fields])
-        except:
-            label_box = wx.TextCtrl(self)
-            txtbox = wx.TextCtrl(self)
+    def add_field(self, *default_choices):
+        if default_choices:
+            label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields])
+            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
+        else:
+            label_box = wx.TextCtrl(self, name=str(self.number_of_fields))
+            txtbox = wx.TextCtrl(self, name=str(self.number_of_fields))
 
-        label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
+        label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss)
         self.label_sizer.Add(
             label_box,
             1,
@@ -118,12 +124,53 @@ class NewLogin(wx.Panel):
 
     def add_custom_field(self, event):
         self.add_field()
+        self.add_remove_btn()
         self.Layout()
+
+    def add_remove_btn(self):
+        rmv_button = wx.Button(self, label="Remove", name=str(self.num_rmv_btns))
+        rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
+        self.remove_btn_sizer.Add(
+            rmv_button,
+            1,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.num_rmv_btns += 1
+
+    def del_remove_btn(self):
+        if self.remove_btn_sizer.GetChildren():
+            sizer_item = self.remove_btn_sizer.GetItem(self.num_rmv_btns - 1)
+            btn = sizer_item.GetWindow()
+            self.remove_btn_sizer.Hide(btn)
+            btn.Destroy()
+            self.num_rmv_btns -= 1
+
+    def delete_field(self, event):
+        self.Freeze()
+        evt_source = event.EventObject
+        index = int(evt_source.GetName())
+        label_sizer = self.label_sizer.GetItem(index)
+        txtbox_sizer = self.txtbox_sizer.GetItem(index)
+        rmv_button_sizer = self.remove_btn_sizer.GetItem(index)
+        label = label_sizer.GetWindow()
+        txtbox = txtbox_sizer.GetWindow()
+        rmv_button = rmv_button_sizer.GetWindow()
+        self.label_sizer.Hide(label)
+        self.txtbox_sizer.Hide(txtbox)
+        self.remove_btn_sizer.Hide(rmv_button)
+        label.Destroy()
+        txtbox.Destroy()
+        rmv_button.Destroy()
+        self.num_rmv_btns -= 1
+        self.number_of_fields -= 1
+        self.Layout()
+        self.Thaw()
 
     def txtctrl_on_focusloss(self, event):
         event.Skip()
         evt_source = event.EventObject
-        label = evt_source.Label
+        label = evt_source.Name
         value = evt_source.Value
         children = self.txtbox_sizer.GetChildren()
         for sizer_child in children:
