@@ -10,7 +10,9 @@ class ViewPanel(wx.Panel):
         self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
         self.label_sizer = wx.BoxSizer(wx.VERTICAL)
         self.lbl_and_box_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.group_button_sizer = wx.BoxSizer(wx.VERTICAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -27,6 +29,7 @@ class ViewPanel(wx.Panel):
         self.lbl_and_box_sizer.AddStretchSpacer()
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
+        # self.bounding_sizer.AddStretchSpacer()
 
         self.btn_edit = wx.Button(self, label="Edit", size=(100, 50))
         self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
@@ -48,7 +51,9 @@ class ViewPanel(wx.Panel):
         self.btn_delete_entry = wx.Button(self, label="Delete", size=(150, 50))
         self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
 
-        self.btn_discard_edits = wx.Button(self, label="Discard Changes", size=(250, 50))
+        self.btn_discard_edits = wx.Button(
+            self, label="Discard Changes", size=(250, 50)
+        )
         self.btn_discard_edits.Bind(wx.EVT_BUTTON, self.discard_edits)
         self.btn_discard_edits.Hide()
 
@@ -56,25 +61,45 @@ class ViewPanel(wx.Panel):
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
         self.btn_add_field.Hide()
 
-        self.button_sizer.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25, 50)
-        self.button_sizer.Add(self.btn_discard_edits, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(self.btn_discard_edits, 0, wx.ALIGN_CENTER, border=50)
 
-        self.button_sizer.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25, 50)
-        self.button_sizer.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25, 50)
-        self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer.Add(25, 50)
-        self.button_sizer.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
 
-        self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTRE)
+        self.button_sizer2.Add(
+            self.btn_add_field,
+            0,
+            wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
+            border=50,
+        )
 
-        self.panel_sizer.AddStretchSpacer()
-        self.panel_sizer.Add(self.bounding_sizer, 3, wx.ALIGN_CENTER)
-        self.panel_sizer.AddStretchSpacer()
+        self.group_button_sizer.Add(self.button_sizer1, 0, wx.ALIGN_CENTER, border=50)
+        self.group_button_sizer.Add(25, 25)
+        self.group_button_sizer.Add(
+            self.button_sizer2,
+            0,
+            wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
+            border=50,
+        )
+
+        self.bounding_sizer.Add(
+            self.group_button_sizer,
+            0,
+            wx.ALIGN_CENTRE | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
+        )
+
+
+        self.panel_sizer.Add(
+            self.bounding_sizer, 3, wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN
+        )
+
 
         self.SetSizer(self.panel_sizer)
 
@@ -129,6 +154,10 @@ class ViewPanel(wx.Panel):
     def show_data(self, doc):
         self.btn_hide_pw.Hide()
         self.btn_show_pw.Show()
+        self.btn_save.Hide()
+        self.btn_discard_edits.Hide()
+        self.btn_add_field.Hide()
+        self.btn_edit.Show()
         tic = time.perf_counter()
 
         self.current_dataobj = db_ops.LoginData(doc)
@@ -211,7 +240,7 @@ class ViewPanel(wx.Panel):
         self.btn_save.Show()
         self.btn_discard_edits.Show()
         self.btn_add_field.Show()
-        self.bounding_sizer.Layout()
+        self.Layout()
 
     def save_edits(self, event):
         new_doc = {}
@@ -221,7 +250,10 @@ class ViewPanel(wx.Panel):
             txtbox = sizer_item.GetWindow()
             key = txtbox.GetName()
             value = txtbox.GetValue()
-            new_doc.update({key: value})
+            if key == "" or value == "":
+                pass
+            else:
+                new_doc.update({key: value})
             txtbox.SetEditable(False)
 
         self.hide_pw(event)
@@ -232,7 +264,10 @@ class ViewPanel(wx.Panel):
         self.btn_discard_edits.Hide()
         self.bounding_sizer.Layout()
         db_ops.db.put(new_doc)
-        self.convert_txtbox()
+        self.Freeze()
+        self.show_data(new_doc)
+        self.Layout()
+        self.Thaw()
         print(new_doc)
 
     def convert_txtbox(self):
@@ -241,9 +276,7 @@ class ViewPanel(wx.Panel):
             if item.ClassName == "wxTextCtrl":
                 self.Freeze()
                 value = item.Value
-                static_text = wx.StaticText(
-                    self, label=value, style=wx.TE_READONLY
-                )
+                static_text = wx.StaticText(self, label=value, style=wx.TE_READONLY)
                 self.label_sizer.Replace(item, static_text)
                 item.Hide()
                 item.Destroy()
@@ -285,13 +318,13 @@ class ViewPanel(wx.Panel):
             wx.TheClipboard.Close()
 
     def discard_edits(self, event):
-        self.Parent.on_select_item(event)
         self.Freeze()
+        self.Parent.on_select_item(event)
         self.btn_discard_edits.Hide()
         self.btn_save.Hide()
         self.btn_add_field.Hide()
         self.btn_edit.Show()
-        self.bounding_sizer.Layout()
+        self.Layout()
         self.Thaw()
 
     def set_field_name(self, event):

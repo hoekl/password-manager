@@ -56,6 +56,7 @@ class NewLogin(wx.Panel):
         self.btn_add_field = wx.Button(self, label="Add field")
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
         self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25, 50)
 
         self.btn_discard = wx.Button(self, label="Discard")
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
