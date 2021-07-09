@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # frame, show it, and start the event loop.
     app = wx.App()
     frm = BaseFrame(None, title="   Password Manager")
-    frm.SetClientSize(frm.FromDIP(wx.Size(900, 500)))
+    frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
     frm.Show()
     app.MainLoop()

@@ -7,8 +7,10 @@ class ViewPanel(wx.Panel):
     def __init__(self, *agrs, **kw):
         super().__init__(*agrs, **kw)
         self.number_of_fields = 0
+        self.num_rmv_btns = 0
         self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
         self.label_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.remove_btn_sizer = wx.BoxSizer(wx.VERTICAL)
         self.lbl_and_box_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         self.button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -18,20 +20,27 @@ class ViewPanel(wx.Panel):
 
         while self.number_of_fields < 6:
             self.add_field()
+            self.add_remove_btn()
+            self.lbl_and_box_sizer.Hide(self.remove_btn_sizer)
 
         self.lbl_and_box_sizer.AddStretchSpacer()
         self.lbl_and_box_sizer.Add(
             self.label_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
         )
         self.lbl_and_box_sizer.Add(
-            self.txtbox_sizer, 1, wx.ALIGN_CENTRE_VERTICAL, border=10
+            self.txtbox_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
+        )
+        self.lbl_and_box_sizer.Add(
+            self.remove_btn_sizer,
+            1,
+            wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALIGN_TOP,
         )
         self.lbl_and_box_sizer.AddStretchSpacer()
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
 
         self.btn_edit = wx.Button(self, label="Edit", size=(100, 50))
-        self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
+        self.btn_edit.Bind(wx.EVT_BUTTON, self.on_edit)
 
         self.btn_save = wx.Button(self, label="Save", size=(100, 50))
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
@@ -57,7 +66,7 @@ class ViewPanel(wx.Panel):
         self.btn_discard_edits.Hide()
 
         self.btn_add_field = wx.Button(self, label="Add field", size=(250, 50))
-        self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
+        self.btn_add_field.Bind(wx.EVT_BUTTON, self.user_add_field)
         self.btn_add_field.Hide()
 
         self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
@@ -117,7 +126,19 @@ class ViewPanel(wx.Panel):
             border=10,
         )
 
-    def add_custom_field(self, event):
+    def remove_field(self):
+        if self.label_sizer.GetChildren() and self.txtbox_sizer.GetChildren():
+            sizer_item = self.label_sizer.GetItem(self.number_of_fields - 1)
+            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
+            label = sizer_item.GetWindow()
+            txtbox = sizer_item2.GetWindow()
+            self.txtbox_sizer.Hide(label)
+            self.txtbox_sizer.Hide(txtbox)
+            label.Destroy()
+            txtbox.Destroy()
+            self.number_of_fields -= 1
+
+    def user_add_field(self, event):
         self.number_of_fields += 1
         new_label = wx.TextCtrl(self)
         new_field = wx.TextCtrl(self)
@@ -134,23 +155,33 @@ class ViewPanel(wx.Panel):
             flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
             border=10,
         )
+        self.add_remove_btn()
         self.Parent.SendSizeEvent()
 
-    def remove_field(self):
-        if self.label_sizer.GetChildren() and self.txtbox_sizer.GetChildren():
-            sizer_item = self.label_sizer.GetItem(self.number_of_fields - 1)
-            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
-            label = sizer_item.GetWindow()
-            txtbox = sizer_item2.GetWindow()
-            self.txtbox_sizer.Hide(label)
-            self.txtbox_sizer.Hide(txtbox)
-            label.Destroy()
-            txtbox.Destroy()
-            self.number_of_fields -= 1
+    def add_remove_btn(self):
+        rmv_button = wx.Button(self, label="Remove", name=str(self.num_rmv_btns))
+        rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
+        self.remove_btn_sizer.Add(
+            rmv_button,
+            1,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN
+            | wx.EXPAND
+            | wx.ALL
+            | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.num_rmv_btns += 1
+
+    def del_remove_btn(self):
+        if self.remove_btn_sizer.GetChildren():
+            sizer_item = self.remove_btn_sizer.GetItem(self.num_rmv_btns - 1)
+            btn = sizer_item.GetWindow()
+            self.remove_btn_sizer.Hide(btn)
+            btn.Destroy()
+            self.num_rmv_btns -= 1
 
     def show_data(self, doc):
         self.btn_hide_pw.Hide()
-        # self.btn_show_pw.Show()
         self.btn_copy_pw.Hide()
         self.btn_show_pw.Hide()
         self.btn_save.Hide()
@@ -171,6 +202,8 @@ class ViewPanel(wx.Panel):
         dict_length = len(data_dict)
         if dict_length == self.number_of_fields:
             self.remove_pw_field()
+            self.mng_remove_btns()
+            self.lbl_and_box_sizer.Hide(self.remove_btn_sizer)
             self.add_data_to_view(data_dict)
         elif dict_length > self.number_of_fields:
             self.add_field()
@@ -229,19 +262,32 @@ class ViewPanel(wx.Panel):
                 self.btn_copy_pw.Show()
                 break
 
-    def set_editable(self, event):
+    def on_edit(self, event):
+        self.Freeze()
         self.show_pw(event)
         self.btn_show_pw.Hide()
         self.btn_hide_pw.Hide()
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             txtbox.SetEditable(True)
-
+        # self.mng_remove_btns()
+        self.lbl_and_box_sizer.Show(self.remove_btn_sizer)
         self.btn_edit.Hide()
         self.btn_save.Show()
         self.btn_discard_edits.Show()
         self.btn_add_field.Show()
         self.Layout()
+        self.Thaw()
+
+    def mng_remove_btns(self):
+        if self.num_rmv_btns == self.number_of_fields:
+            return
+        if self.num_rmv_btns < self.number_of_fields:
+            self.add_remove_btn()
+            self.mng_remove_btns()
+        if self.num_rmv_btns > self.number_of_fields:
+            self.del_remove_btn()
+            self.mng_remove_btns()
 
     def save_edits(self, event):
         new_doc = {}
@@ -339,6 +385,9 @@ class ViewPanel(wx.Panel):
             if txtbox.GetName() == label:
                 txtbox.SetName(value)
                 break
+
+    def delete_field(self, event):
+        pass
 
     def on_delete(self, event):
         confirm_dialog = wx.MessageDialog(
