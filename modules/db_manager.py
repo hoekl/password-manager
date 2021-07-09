@@ -7,7 +7,6 @@ pp = pprint.PrettyPrinter(indent=4)
 server = couchdb2.Server("http://admin:pwmanager@127.0.0.1:5984")
 
 
-
 class DataBase:
     def __init__(self, db_name) -> couchdb2.Database:
         if server.up() == True:
@@ -74,13 +73,18 @@ class DataBase:
         except Exception:
             print(traceback.print_exc())
 
+
 class LoginData:
     def __init__(self, doc=None):
         if doc != None:
             self.id = doc.pop("_id")
             self.rev = doc.pop("_rev")
             self.data = doc
-            self.password = doc["password"]
+            try:
+                self.password = doc["password"]
+            except:
+                pass
+
 
 db = DataBase("copy_mock_data")
 
