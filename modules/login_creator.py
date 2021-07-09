@@ -53,6 +53,10 @@ class NewLogin(wx.Panel):
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
+        self.btn_add_field = wx.Button(self, label="Add field")
+        self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
+        self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
+
         self.btn_discard = wx.Button(self, label="Discard")
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
@@ -86,8 +90,15 @@ class NewLogin(wx.Panel):
         self.SetSizer(self.panel_sizer)
 
     def add_field(self):
-        label_box = wx.TextCtrl(self, value=self.default_choices[self.number_of_fields])
-        txtbox = wx.TextCtrl(self, name=self.default_choices[self.number_of_fields])
+        try:
+            label_box = wx.TextCtrl(
+                self, value=self.default_choices[self.number_of_fields]
+            )
+            txtbox = wx.TextCtrl(self, name=self.default_choices[self.number_of_fields])
+        except:
+            label_box = wx.TextCtrl(self)
+            txtbox = wx.TextCtrl(self)
+
         label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss, label_box)
         self.label_sizer.Add(
             label_box,
@@ -103,6 +114,10 @@ class NewLogin(wx.Panel):
         )
 
         self.number_of_fields += 1
+
+    def add_custom_field(self, event):
+        self.add_field()
+        self.Layout()
 
     def txtctrl_on_focusloss(self, event):
         event.Skip()

@@ -289,6 +289,7 @@ class ViewPanel(wx.Panel):
         self.Freeze()
         self.btn_discard_edits.Hide()
         self.btn_save.Hide()
+        self.btn_add_field.Hide()
         self.btn_edit.Show()
         self.bounding_sizer.Layout()
         self.Thaw()
