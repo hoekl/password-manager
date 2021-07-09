@@ -267,7 +267,7 @@ class ViewPanel(wx.Panel):
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             txtbox.SetEditable(True)
-        # self.mng_remove_btns()
+        self.convert_statictxt()
         self.lbl_and_box_sizer.Show(self.remove_btn_sizer)
         self.btn_edit.Hide()
         self.btn_save.Show()
@@ -327,6 +327,20 @@ class ViewPanel(wx.Panel):
                 self.Parent.SendSizeEvent()
                 self.Thaw()
 
+    def convert_statictxt(self):
+        self.Freeze()
+        for sizer_item in self.label_sizer.__iter__():
+            item = sizer_item.GetWindow()
+            if item.ClassName == "wxStaticText":
+                value = item.Label
+                txtctrl = wx.TextCtrl(self, value=value)
+                txtctrl.Bind(wx.EVT_KILL_FOCUS, self.set_field_name)
+                self.label_sizer.Replace(item, txtctrl)
+                item.Destroy()
+
+        self.Parent.SendSizeEvent()
+        self.Thaw()
+
     def show_pw(self, event):
         for sizer_item in self.txtbox_sizer.__iter__():
             ctrl = sizer_item.GetWindow()
@@ -374,7 +388,7 @@ class ViewPanel(wx.Panel):
     def set_field_name(self, event):
         event.Skip()
         evt_source = event.EventObject
-        label = evt_source.Name
+        label = evt_source.Label
         value = evt_source.Value
         children = self.txtbox_sizer.GetChildren()
         for sizer_child in children:
