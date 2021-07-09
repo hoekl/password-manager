@@ -21,8 +21,16 @@ class CreateLogin(wx.Panel):
 
     def on_generate(self, event):
         dialog = PWGenWindow()
-        dialog.ShowModal()
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.txt_ctrl.Value
+            self.new_login_pnl.autofill(password)
+        else:
+            pass
         dialog.Destroy()
+
+    def autofill(self, event):
+        print(event)
 
     def on_refresh(self):
         empty_panel = NewLogin(self)
@@ -179,6 +187,13 @@ class NewLogin(wx.Panel):
                 txtbox.SetName(value)
                 break
 
+    def autofill(self, password):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            txtbox = sizer_item.GetWindow()
+            if txtbox.Name == "password":
+                txtbox.SetValue(password)
+                break
+
     def get_values(self):
         for sizer_item in self.txtbox_sizer.__iter__():
             ctrl = sizer_item.GetWindow()
@@ -263,6 +278,7 @@ class PWGenWindow(wx.Dialog):
             initial=self.pw_length,
         )
         self.copy_button = wx.Button(self, label="Copy", size=(100, 50))
+        self.autofill_button = wx.Button(self, id=wx.ID_OK, label="Use this password")
         self.choices_box = wx.CheckListBox(
             self,
             pos=(50, 50),
@@ -286,6 +302,7 @@ class PWGenWindow(wx.Dialog):
             self.sub_sizer1,
             self.sub_sizer2,
             self.choices_box,
+            self.autofill_button
         ]
 
         self.main_sizer.AddStretchSpacer()
@@ -321,6 +338,9 @@ class PWGenWindow(wx.Dialog):
     def copy_pw(self, event):
         self.txt_ctrl.SelectAll()
         self.txt_ctrl.Copy()
+
+    def autofill(self, event):
+        print(event)
 
 
 if __name__ == "__main__":
