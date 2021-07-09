@@ -82,6 +82,7 @@ class LoginData:
             self.data = doc
             try:
                 self.password = doc["password"]
+                self.password = doc["Password"]
             except:
                 pass
 

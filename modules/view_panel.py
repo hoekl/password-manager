@@ -29,7 +29,6 @@ class ViewPanel(wx.Panel):
         self.lbl_and_box_sizer.AddStretchSpacer()
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
-        # self.bounding_sizer.AddStretchSpacer()
 
         self.btn_edit = wx.Button(self, label="Edit", size=(100, 50))
         self.btn_edit.Bind(wx.EVT_BUTTON, self.set_editable)
@@ -95,11 +94,9 @@ class ViewPanel(wx.Panel):
             wx.ALIGN_CENTRE | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
         )
 
-
         self.panel_sizer.Add(
             self.bounding_sizer, 3, wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN
         )
-
 
         self.SetSizer(self.panel_sizer)
 
@@ -153,7 +150,9 @@ class ViewPanel(wx.Panel):
 
     def show_data(self, doc):
         self.btn_hide_pw.Hide()
-        self.btn_show_pw.Show()
+        # self.btn_show_pw.Show()
+        self.btn_copy_pw.Hide()
+        self.btn_show_pw.Hide()
         self.btn_save.Hide()
         self.btn_discard_edits.Hide()
         self.btn_add_field.Hide()
@@ -226,6 +225,8 @@ class ViewPanel(wx.Panel):
                 self.txtbox_sizer.Hide(ctrl)
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Destroy()
+                self.btn_show_pw.Show()
+                self.btn_copy_pw.Show()
                 break
 
     def set_editable(self, event):
@@ -259,12 +260,12 @@ class ViewPanel(wx.Panel):
         self.hide_pw(event)
         self.btn_save.Hide()
         self.btn_edit.Show()
-        self.btn_show_pw.Show()
         self.btn_add_field.Hide()
         self.btn_discard_edits.Hide()
         self.bounding_sizer.Layout()
         db_ops.db.put(new_doc)
         self.Freeze()
+        self.convert_txtbox()
         self.show_data(new_doc)
         self.Layout()
         self.Thaw()
