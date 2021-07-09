@@ -57,7 +57,13 @@ class NewLogin(wx.Panel):
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
 
-        self.default_choices = ["service name", "website", "email", "username", "password"]
+        self.default_choices = [
+            "service name",
+            "website",
+            "email",
+            "username",
+            "password",
+        ]
 
         while self.number_of_fields < 5:
             self.add_field()
@@ -129,7 +135,7 @@ class NewLogin(wx.Panel):
     def on_save(self, event):
         self.get_values()
         if self.doc.values():
-            self.create_UID(self.doc)
+            self.create_UID()
             try:
                 db_ops.db.put(self.doc)
                 self.on_success()
