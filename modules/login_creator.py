@@ -5,6 +5,10 @@ import wx
 import hashlib
 from modules import db_manager as db_ops
 
+dark_grey = wx.Colour(42, 42, 46)
+off_white = wx.Colour(235, 235, 235)
+light_grey = wx.Colour(53, 53, 59)
+grey_btn = wx.Colour(74, 74, 82)
 
 class CreateLogin(wx.Panel):
     def __init__(self, *args, **kw):
@@ -13,6 +17,8 @@ class CreateLogin(wx.Panel):
         self.new_login_pnl = NewLogin(self)
         self.launch_dialog_btn = wx.Button(self, label="Generate Password")
         self.launch_dialog_btn.Bind(wx.EVT_BUTTON, self.on_generate)
+        self.launch_dialog_btn.SetForegroundColour(off_white)
+        self.launch_dialog_btn.SetBackgroundColour(grey_btn)
         self.main_sizer.Add(self.new_login_pnl, 1, flag=wx.ALIGN_CENTER, border=50)
         self.main_sizer.Add(
             self.launch_dialog_btn, wx.SizerFlags().Centre().Border(wx.ALL, 5)
@@ -34,6 +40,8 @@ class CreateLogin(wx.Panel):
 
     def on_refresh(self):
         empty_panel = NewLogin(self)
+        empty_panel.SetBackgroundColour(dark_grey)
+        empty_panel.SetForegroundColour(off_white)
         sizer_items = self.main_sizer.GetChildren()
         sizer_item = sizer_items[0]
         old_panel = sizer_item.GetWindow()
@@ -60,16 +68,23 @@ class NewLogin(wx.Panel):
 
         self.btn_save = wx.Button(self, label="Save")
         self.btn_save.Bind(wx.EVT_BUTTON, self.on_save)
+        self.btn_save.SetBackgroundColour(grey_btn)
+        self.btn_save.SetForegroundColour(off_white)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
         self.btn_add_field = wx.Button(self, label="Add field")
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
+        self.btn_add_field.SetBackgroundColour(grey_btn)
+        self.btn_add_field.SetForegroundColour(off_white)
+
         self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
         self.btn_discard = wx.Button(self, label="Discard")
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
+        self.btn_discard.SetBackgroundColour(grey_btn)
+        self.btn_discard.SetForegroundColour(off_white)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
 
         default_choices = [
@@ -114,6 +129,10 @@ class NewLogin(wx.Panel):
             label_box = wx.TextCtrl(self, name=str(self.number_of_fields))
             txtbox = wx.TextCtrl(self, name=str(self.number_of_fields))
 
+        label_box.SetBackgroundColour(light_grey)
+        label_box.SetForegroundColour(off_white)
+        txtbox.SetBackgroundColour(light_grey)
+        txtbox.SetForegroundColour(off_white)
         label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss)
         self.label_sizer.Add(
             label_box,
@@ -138,6 +157,8 @@ class NewLogin(wx.Panel):
     def add_remove_btn(self):
         rmv_button = wx.Button(self, label="Remove", name=str(self.num_rmv_btns))
         rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
+        rmv_button.SetForegroundColour(off_white)
+        rmv_button.SetBackgroundColour(grey_btn)
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
