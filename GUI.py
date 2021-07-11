@@ -18,20 +18,26 @@ class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
         self.CreateStatusBar()
-        self.notebook_panel = wx.Notebook(self, style=wx.BORDER_SIMPLE)
-        first_panel = login.CreateLogin(self.notebook_panel)
-        second_panel = ListPanel(self.notebook_panel)
-        self.notebook_panel.AddPage(first_panel, "New Login", False)
-        self.notebook_panel.AddPage(second_panel, "Logins", True)
+        self.base_panel = wx.Panel(self)
 
-        self.frame_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.frame_sizer.Add(first_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
-        self.frame_sizer.Add(second_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
+        self.notebook = wx.Notebook(self.base_panel, style=wx.BORDER_SIMPLE)
+        first_panel = login.CreateLogin(self.notebook)
+        second_panel = ListPanel(self.notebook)
+        self.notebook.AddPage(first_panel, "New Login", False)
+        self.notebook.AddPage(second_panel, "Logins", True)
+
+        self.notebook_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.frame_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.frame_sizer.Add(first_panel, proportion=1, flag=wx.ALL, border=5)
+        self.frame_sizer.Add(second_panel, proportion=1, flag=wx.ALL, border=5)
+        self.notebook_sizer.Add(self.notebook, 1, flag=wx.EXPAND)
+        self.base_panel.SetSizer(self.notebook_sizer)
+
 
     def refresh(self):
-        self.notebook_panel.DeletePage(1)
-        new_list_panel = ListPanel(self.notebook_panel)
-        self.notebook_panel.AddPage(new_list_panel, "Logins", False)
+        self.notebook.DeletePage(1)
+        new_list_panel = ListPanel(self.notebook)
+        self.notebook.AddPage(new_list_panel, "Logins", False)
         self.frame_sizer.Add(new_list_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
 
