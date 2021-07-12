@@ -36,17 +36,14 @@ class BaseFrame(wx.Frame):
         self.notebook.AddPage(second_panel, "Logins", True)
 
         self.notebook_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.frame_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.notebook_sizer.Add(self.notebook, 1, flag=wx.EXPAND)
         self.base_panel.SetSizer(self.notebook_sizer)
 
     def refresh(self):
-        # !!! Rewrite due to breaking changes
         self.notebook.DeletePage(1)
         new_list_panel = ListPanel(self.notebook)
         self.notebook.AddPage(new_list_panel, "Logins", False)
-        self.frame_sizer.Add(new_list_panel, wx.SizerFlags().Centre().Border(wx.ALL, 5))
 
 
 class ListPanel(wx.Panel):
