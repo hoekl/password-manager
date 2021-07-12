@@ -148,7 +148,7 @@ class ViewPanel(wx.Panel):
     def add_field(self):
         self.number_of_fields += 1
         new_label = wx.StaticText(self)
-        new_field = wx.TextCtrl(self)
+        new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
         new_label.SetForegroundColour(off_white)
         new_field.SetForegroundColour(off_white)
         new_field.SetBackgroundColour(light_grey)
@@ -179,8 +179,8 @@ class ViewPanel(wx.Panel):
 
     def user_add_field(self, event):
         self.number_of_fields += 1
-        new_label = wx.TextCtrl(self)
-        new_field = wx.TextCtrl(self)
+        new_label = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
+        new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
         new_label.SetForegroundColour(off_white)
         new_field.SetForegroundColour(off_white)
         new_label.SetBackgroundColour(light_grey)
@@ -260,7 +260,7 @@ class ViewPanel(wx.Panel):
             ctrl = sizer_item.GetWindow()
             if ctrl.GetName() == "password":
                 self.txtbox_sizer.Hide(ctrl)
-                temp_ctrl = wx.TextCtrl(self)
+                temp_ctrl = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
                 temp_ctrl.SetBackgroundColour(light_grey)
                 temp_ctrl.SetForegroundColour(off_white)
                 self.txtbox_sizer.Replace(ctrl, temp_ctrl)
@@ -297,7 +297,7 @@ class ViewPanel(wx.Panel):
             ctrl = item.GetWindow()
             if ctrl.GetName() == "password":
                 pw_ctrl = wx.TextCtrl(
-                    self, value="abcdefg", style=wx.TE_READONLY | wx.TE_PASSWORD
+                    self, value="abcdefg", style=wx.TE_READONLY | wx.TE_PASSWORD | wx.BORDER_SIMPLE
                 )
                 pw_ctrl.SetForegroundColour(off_white)
                 pw_ctrl.SetBackgroundColour(light_grey)
@@ -384,7 +384,7 @@ class ViewPanel(wx.Panel):
             item = sizer_item.GetWindow()
             if item.ClassName == "wxStaticText":
                 value = item.Label
-                txtctrl = wx.TextCtrl(self, value=value)
+                txtctrl = wx.TextCtrl(self, value=value, style=wx.BORDER_SIMPLE)
                 txtctrl.Bind(wx.EVT_KILL_FOCUS, self.set_field_name)
                 txtctrl.SetBackgroundColour(light_grey)
                 txtctrl.SetForegroundColour(off_white)
@@ -401,7 +401,7 @@ class ViewPanel(wx.Panel):
             if lbl == "password":
                 self.Freeze()
                 pw_ctrl = wx.TextCtrl(
-                    self, value=self.current_dataobj.password, style=wx.TE_READONLY
+                    self, value=self.current_dataobj.password, style=wx.TE_READONLY | wx.BORDER_SIMPLE
                 )
                 pw_ctrl.SetBackgroundColour(light_grey)
                 pw_ctrl.SetForegroundColour(off_white)
@@ -453,6 +453,7 @@ class ViewPanel(wx.Panel):
                 break
 
     def delete_field(self, event):
+        # ! Check if bug is caused due to index mismatch
         self.Freeze()
         evt_source = event.EventObject
         index = int(evt_source.GetName())
