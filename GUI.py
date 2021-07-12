@@ -26,12 +26,12 @@ class BaseFrame(wx.Frame):
         self.SetForegroundColour(off_white)
         self.base_panel = wx.Panel(self)
 
-        self.notebook = flnb.FlatNotebook(self.base_panel)
-        self.notebook.SetBackgroundColour((dark_grey))
+        self.notebook = flnb.FlatNotebook(self.base_panel, agwStyle=flnb.FNB_NO_NAV_BUTTONS | flnb.FNB_NO_X_BUTTON | flnb.FNB_NODRAG | flnb.FNB_DEFAULT_STYLE)
+        self.notebook.SetBackgroundColour(dark_grey)
         first_panel = login.CreateLogin(self.notebook)
-        first_panel.SetBackgroundColour((dark_grey))
+        first_panel.SetBackgroundColour(dark_grey)
         second_panel = ListPanel(self.notebook)
-        second_panel.SetBackgroundColour((dark_grey))
+        second_panel.SetBackgroundColour(dark_grey)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
 
@@ -49,15 +49,15 @@ class BaseFrame(wx.Frame):
 class ListPanel(wx.Panel):
     def __init__(self, *args, **kw):
         super(ListPanel, self).__init__(*args, **kw)
-        self.SetBackgroundColour((dark_grey))
+        self.SetBackgroundColour(dark_grey)
         choices = db_ops.db.get_logins_list()
         self.list_box = wx.ListBox(
-            self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
+            self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT | wx.BORDER_NONE
         )
         self.list_box.SetBackgroundColour(dark_grey)
         self.list_box.SetForegroundColour(off_white)
         self.list_box.SetScrollbar(20, 20, 50, 50)
-        self.list_box.SetBackgroundColour((dark_grey))
+        self.list_box.SetBackgroundColour(dark_grey)
         self.view_panel = vp.ViewPanel(self)
         self.view_panel.SetForegroundColour(off_white)
         self.view_panel.SetBackgroundColour(dark_grey)
@@ -69,12 +69,6 @@ class ListPanel(wx.Panel):
 
         self.Bind(wx.EVT_LISTBOX, self.on_select_item, self.list_box)
 
-    def get_logins_list(self):
-        choices = db_ops.db.get_logins_list()
-        list_box = wx.ListBox(
-            self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT
-        )
-        return list_box
 
     def on_select_item(self, event):
         index = self.list_box.GetSelection()
