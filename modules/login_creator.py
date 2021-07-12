@@ -4,6 +4,7 @@ from couchdb2 import CouchDB2Exception
 import wx
 import hashlib
 from modules import db_manager as db_ops
+import traceback
 
 dark_grey = wx.Colour(42, 42, 46)
 off_white = wx.Colour(235, 235, 235)
@@ -35,18 +36,16 @@ class CreateLogin(wx.Panel):
             pass
         dialog.Destroy()
 
-    def autofill(self, event):
-        print(event)
 
     def on_refresh(self):
-        empty_panel = NewLogin(self)
-        empty_panel.SetBackgroundColour(dark_grey)
-        empty_panel.SetForegroundColour(off_white)
+        self.new_login_pnl = NewLogin(self)
+        self.new_login_pnl.SetBackgroundColour(dark_grey)
+        self.new_login_pnl.SetForegroundColour(off_white)
         sizer_items = self.main_sizer.GetChildren()
         sizer_item = sizer_items[0]
         old_panel = sizer_item.GetWindow()
         self.Freeze()
-        self.main_sizer.Replace(old_panel, empty_panel)
+        self.main_sizer.Replace(old_panel, self.new_login_pnl)
         old_panel.Destroy()
         self.main_sizer.Layout()
         self.Thaw()
@@ -193,6 +192,13 @@ class NewLogin(wx.Panel):
         rmv_button.Destroy()
         self.num_rmv_btns -= 1
         self.number_of_fields -= 1
+        i = 0
+        for sizer_item in self.remove_btn_sizer.__iter__():
+            if i <= self.num_rmv_btns:
+                ctrl = sizer_item.GetWindow()
+                ctrl.SetName(str(i))
+                i += 1
+
         self.Layout()
         self.Thaw()
 
