@@ -57,9 +57,16 @@ class ListPanel(wx.Panel):
         super(ListPanel, self).__init__(*args, **kw)
         self.SetBackgroundColour(dark_grey)
         choices = db_ops.db.get_logins_list()
+        self.choices = sorted(choices)
         self.list_box = wx.ListBox(
-            self, size=(400, -1), choices=choices, style=wx.LB_SINGLE | wx.LB_SORT | wx.BORDER_NONE
+            self, size=(400, -1), choices=self.choices, style=wx.LB_SINGLE | wx.BORDER_NONE
         )
+        self.searchbox = wx.TextCtrl(self, value="\U0001F50E Search...", style=wx.BORDER_SIMPLE)
+        self.searchbox.SetBackgroundColour(light_grey)
+        self.searchbox.SetForegroundColour(off_white)
+        self.searchbox.Bind(wx.EVT_KEY_UP, self.search)
+        self.searchbox.Bind(wx.EVT_SET_FOCUS, self.clear_search)
+        self.searchbox.Bind(wx.EVT_KILL_FOCUS, self.set_search)
         self.list_box.SetBackgroundColour(dark_grey)
         self.list_box.SetForegroundColour(off_white)
         self.list_box.SetScrollbar(20, 20, 50, 50)
@@ -69,11 +76,34 @@ class ListPanel(wx.Panel):
         self.view_panel.SetBackgroundColour(dark_grey)
         self.view_panel.Hide()
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.list_box, 0, wx.EXPAND)
+        self.sub_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sub_sizer.Add(self.searchbox, 0, wx.EXPAND)
+        self.sub_sizer.Add(self.list_box, 1, wx.EXPAND)
+        self.sizer.Add(self.sub_sizer, 0, wx.EXPAND)
         self.sizer.Add(self.view_panel, 0, wx.EXPAND)
         self.SetSizer(self.sizer)
 
         self.Bind(wx.EVT_LISTBOX, self.on_select_item, self.list_box)
+
+    def search(self, event):
+        event.Skip()
+        self.list_box.Freeze()
+        get_char = self.searchbox.GetValue()
+        self.list_box.Clear()
+        for item in self.choices:
+            if get_char in item:
+                self.list_box.Append(item)
+        self.list_box.Thaw()
+
+    def clear_search(self, event):
+        event.Skip()
+        self.searchbox.Clear()
+        send_backspace = wx.UIActionSimulator()
+        send_backspace.Char(8)
+
+    def set_search(self, event):
+        event.Skip()
+        self.searchbox.SetValue("\U0001F50E Search...")
 
 
     def on_select_item(self, *event):
