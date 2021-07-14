@@ -61,6 +61,7 @@ class ListPanel(wx.Panel):
         self.list_box = wx.ListBox(
             self, size=(400, -1), choices=self.choices, style=wx.LB_SINGLE | wx.BORDER_NONE
         )
+
         self.searchbox = wx.TextCtrl(self, value="\U0001F50E Search...", style=wx.BORDER_SIMPLE)
         self.searchbox.SetBackgroundColour(light_grey)
         self.searchbox.SetForegroundColour(off_white)
@@ -69,7 +70,7 @@ class ListPanel(wx.Panel):
         self.searchbox.Bind(wx.EVT_KILL_FOCUS, self.set_search)
         self.list_box.SetBackgroundColour(dark_grey)
         self.list_box.SetForegroundColour(off_white)
-        self.list_box.SetScrollbar(20, 20, 50, 50)
+        # self.scrolled_window.SetScrollbars(20, 20, 50, 50)
         self.list_box.SetBackgroundColour(dark_grey)
         self.view_panel = vp.ViewPanel(self)
         self.view_panel.SetForegroundColour(off_white)
@@ -97,12 +98,17 @@ class ListPanel(wx.Panel):
 
     def clear_search(self, event):
         event.Skip()
+        self.selected_item = self.list_box.GetSelection()
         self.searchbox.Clear()
         send_backspace = wx.UIActionSimulator()
         send_backspace.Char(8)
 
     def set_search(self, event):
         event.Skip()
+        try:
+            self.list_box.SetSelection(self.selected_item)
+        except Exception:
+            pass
         self.searchbox.SetValue("\U0001F50E Search...")
 
 
