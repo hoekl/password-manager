@@ -6,10 +6,11 @@ import hashlib
 from modules import db_manager as db_ops
 import wx.lib.agw.genericmessagedialog as GMD
 
-dark_grey = wx.Colour(42, 42, 46)
+dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
-light_grey = wx.Colour(53, 53, 59)
-grey_btn = wx.Colour(74, 74, 82)
+light_grey = wx.Colour(55, 55, 55)
+grey_btn = wx.Colour(69, 69, 69)
+edit_colour = wx.Colour(63, 63, 63)
 
 class CreateLogin(wx.Panel):
     def __init__(self, *args, **kw):
@@ -27,14 +28,18 @@ class CreateLogin(wx.Panel):
         self.SetSizer(self.main_sizer)
 
     def on_generate(self, event):
-        dialog = PWGenWindow()
+        dialog = PWGenWindow(self, title="Generate new password")
         res = dialog.ShowModal()
+        #print(res)
         if res == 5100:
             password = dialog.txt_ctrl.Value
             self.new_login_pnl.autofill(password)
         else:
             pass
         dialog.Destroy()
+
+    def handle_autofill(self, event):
+        print(event)
 
 
     def on_refresh(self):
@@ -122,15 +127,15 @@ class NewLogin(wx.Panel):
 
     def add_field(self, *default_choices):
         if default_choices:
-            label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields])
-            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields])
+            label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields], style=wx.BORDER_SIMPLE)
+            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields], style=wx.BORDER_SIMPLE)
         else:
-            label_box = wx.TextCtrl(self, name=str(self.number_of_fields))
-            txtbox = wx.TextCtrl(self, name=str(self.number_of_fields))
+            label_box = wx.TextCtrl(self, name=str(self.number_of_fields), style=wx.BORDER_SIMPLE)
+            txtbox = wx.TextCtrl(self, name=str(self.number_of_fields), style=wx.BORDER_SIMPLE)
 
-        label_box.SetBackgroundColour(light_grey)
+        label_box.SetBackgroundColour(edit_colour)
         label_box.SetForegroundColour(off_white)
-        txtbox.SetBackgroundColour(light_grey)
+        txtbox.SetBackgroundColour(edit_colour)
         txtbox.SetForegroundColour(off_white)
         label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss)
         self.label_sizer.Add(
@@ -285,8 +290,9 @@ class NewLogin(wx.Panel):
 
 
 class PWGenWindow(wx.Dialog):
-    def __init__(self):
-        super().__init__(parent=None, title="Generate new password")
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.SetEscapeId(5101)
         self.pw_length = 24
         self.SetClientSize(self.FromDIP(wx.Size(500, 200)))
         self.generate_button = wx.Button(self, label="Generate Password")
@@ -304,8 +310,9 @@ class PWGenWindow(wx.Dialog):
             max=32,
             initial=self.pw_length,
         )
-        self.copy_button = wx.Button(self, label="Copy", size=(100, 50))
-        self.autofill_button = wx.Button(self, id=wx.ID_OK, label="Use this password")
+        self.copy_button = wx.Button(self, label="Copy", size=(100, -1))
+        self.autofill_button = wx.Button(self,id=wx.ID_OK, label="Use this password")
+        # self.autofill_button.Bind(wx.EVT_CLOSE, self.Parent.handle_autofill)
         self.choices_box = wx.CheckListBox(
             self,
             pos=(50, 50),
@@ -367,7 +374,8 @@ class PWGenWindow(wx.Dialog):
         self.txt_ctrl.Copy()
 
     def autofill(self, event):
-        print(event)
+        self.Destroy()
+
 
 
 if __name__ == "__main__":

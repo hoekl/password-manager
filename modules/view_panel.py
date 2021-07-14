@@ -3,14 +3,16 @@ import time
 from modules import db_manager as db_ops
 
 
-dark_grey = wx.Colour(42, 42, 46)
+dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
-light_grey = wx.Colour(53, 53, 59)
-grey_btn = wx.Colour(74, 74, 82)
+light_grey = wx.Colour(55, 55, 55)
+grey_btn = wx.Colour(69, 69, 69)
+edit_colour = wx.Colour(63, 63, 63)
 
 class ViewPanel(wx.Panel):
     def __init__(self, *agrs, **kw):
         super().__init__(*agrs, **kw)
+        self.is_edited = False
         self.number_of_fields = 0
         self.num_rmv_btns = 0
         self.SetBackgroundColour(dark_grey)
@@ -46,14 +48,14 @@ class ViewPanel(wx.Panel):
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
 
         self.btn_edit = wx.Button(
-            self, label="Edit", size=(100, 50), style=wx.BORDER_NONE
+            self, label="Edit", size=(100, -1), style=wx.BORDER_NONE
         )
         self.btn_edit.Bind(wx.EVT_BUTTON, self.on_edit)
         self.btn_edit.SetBackgroundColour(grey_btn)
         self.btn_edit.SetForegroundColour(off_white)
 
         self.btn_save = wx.Button(
-            self, label="Save", size=(100, 50), style=wx.BORDER_NONE
+            self, label="Save", size=(100, -1), style=wx.BORDER_NONE
         )
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
         self.btn_save.Hide()
@@ -61,7 +63,7 @@ class ViewPanel(wx.Panel):
         self.btn_save.SetForegroundColour(off_white)
 
         self.btn_show_pw = wx.Button(
-            self, label="Show Password", size=(250, 50), style=wx.BORDER_NONE
+            self, label="Show Password", size=(250, -1), style=wx.BORDER_NONE
         )
         self.btn_show_pw.Bind(wx.EVT_BUTTON, self.show_pw)
         self.btn_show_pw.Hide()
@@ -69,28 +71,28 @@ class ViewPanel(wx.Panel):
         self.btn_show_pw.SetForegroundColour(off_white)
 
         self.btn_hide_pw = wx.Button(
-            self, label="Hide Password", size=(250, 50), style=wx.BORDER_NONE
+            self, label="Hide Password", size=(250, -1), style=wx.BORDER_NONE
         )
         self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
         self.btn_hide_pw.SetBackgroundColour(grey_btn)
         self.btn_hide_pw.SetForegroundColour(off_white)
 
         self.btn_copy_pw = wx.Button(
-            self, label="Copy Password", size=(250, 50), style=wx.BORDER_NONE
+            self, label="Copy Password", size=(250, -1), style=wx.BORDER_NONE
         )
         self.btn_copy_pw.Bind(wx.EVT_BUTTON, self.copy_pw)
         self.btn_copy_pw.SetBackgroundColour(grey_btn)
         self.btn_copy_pw.SetForegroundColour(off_white)
 
         self.btn_delete_entry = wx.Button(
-            self, label="Delete", size=(150, 50), style=wx.BORDER_NONE
+            self, label="Delete", size=(150, -1), style=wx.BORDER_NONE
         )
         self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
         self.btn_delete_entry.SetBackgroundColour(grey_btn)
         self.btn_delete_entry.SetForegroundColour(off_white)
 
         self.btn_discard_edits = wx.Button(
-            self, label="Discard Changes", size=(250, 50), style=wx.BORDER_NONE
+            self, label="Discard Changes", size=(250, -1), style=wx.BORDER_NONE
         )
         self.btn_discard_edits.Bind(wx.EVT_BUTTON, self.discard_edits)
         self.btn_discard_edits.Hide()
@@ -98,7 +100,7 @@ class ViewPanel(wx.Panel):
         self.btn_discard_edits.SetForegroundColour(off_white)
 
         self.btn_add_field = wx.Button(
-            self, label="Add field", size=(250, 50), style=wx.BORDER_NONE
+            self, label="Add field", size=(250, -1), style=wx.BORDER_NONE
         )
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.user_add_field)
         self.btn_add_field.Hide()
@@ -107,14 +109,14 @@ class ViewPanel(wx.Panel):
 
         self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer1.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(25, -1)
         self.button_sizer1.Add(self.btn_discard_edits, 0, wx.ALIGN_CENTER, border=50)
 
         self.button_sizer1.Add(self.btn_show_pw, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer1.Add(self.btn_hide_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(25, -1)
         self.button_sizer1.Add(self.btn_copy_pw, 0, wx.ALIGN_CENTER, border=50)
-        self.button_sizer1.Add(25, 50)
+        self.button_sizer1.Add(25, -1)
         self.button_sizer1.Add(self.btn_delete_entry, 0, wx.ALIGN_CENTER, border=50)
 
         self.button_sizer2.Add(
@@ -183,8 +185,8 @@ class ViewPanel(wx.Panel):
         new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
         new_label.SetForegroundColour(off_white)
         new_field.SetForegroundColour(off_white)
-        new_label.SetBackgroundColour(light_grey)
-        new_field.SetBackgroundColour(light_grey)
+        new_label.SetBackgroundColour(edit_colour)
+        new_field.SetBackgroundColour(edit_colour)
         new_label.Bind(wx.EVT_KILL_FOCUS, self.set_field_name, new_label)
         self.label_sizer.Add(
             new_label,
@@ -317,12 +319,14 @@ class ViewPanel(wx.Panel):
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             txtbox.SetEditable(True)
+            txtbox.SetBackgroundColour(edit_colour)
         self.convert_statictxt()
         self.lbl_and_box_sizer.Show(self.remove_btn_sizer)
         self.btn_edit.Hide()
         self.btn_save.Show()
         self.btn_discard_edits.Show()
         self.btn_add_field.Show()
+        self.is_edited = True
         self.Layout()
         self.Thaw()
 
@@ -337,6 +341,7 @@ class ViewPanel(wx.Panel):
             self.mng_remove_btns()
 
     def save_edits(self, event):
+        self.is_edited == True
         new_doc = {}
         new_doc.update({"_id": self.current_dataobj.id})
         new_doc.update({"_rev": self.current_dataobj.rev})
@@ -359,7 +364,7 @@ class ViewPanel(wx.Panel):
         db_ops.db.put(new_doc)
         self.Freeze()
         self.convert_txtbox()
-        self.show_data(new_doc)
+        self.Parent.on_select_item()
         self.Layout()
         self.Thaw()
         print(new_doc)
@@ -386,7 +391,7 @@ class ViewPanel(wx.Panel):
                 value = item.Label
                 txtctrl = wx.TextCtrl(self, value=value, style=wx.BORDER_SIMPLE)
                 txtctrl.Bind(wx.EVT_KILL_FOCUS, self.set_field_name)
-                txtctrl.SetBackgroundColour(light_grey)
+                txtctrl.SetBackgroundColour(edit_colour)
                 txtctrl.SetForegroundColour(off_white)
                 self.label_sizer.Replace(item, txtctrl)
                 item.Destroy()
@@ -432,7 +437,7 @@ class ViewPanel(wx.Panel):
 
     def discard_edits(self, event):
         self.Freeze()
-        self.Parent.on_select_item(event)
+        self.Parent.on_select_item()
         self.btn_discard_edits.Hide()
         self.btn_save.Hide()
         self.btn_add_field.Hide()
@@ -440,10 +445,15 @@ class ViewPanel(wx.Panel):
         self.Layout()
         self.Thaw()
 
+    def change_colour(self):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            statictxt = sizer_item.GetWindow()
+            statictxt.SetBackgroundColour(light_grey)
+
     def set_field_name(self, event):
         event.Skip()
         evt_source = event.EventObject
-        label = evt_source.Label
+        label = evt_source.Name
         value = evt_source.Value
         children = self.txtbox_sizer.GetChildren()
         for sizer_child in children:

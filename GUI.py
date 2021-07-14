@@ -14,17 +14,23 @@ except Exception:
     pass
 pp = pprint.PrettyPrinter(indent=4)
 
-dark_grey = wx.Colour(42, 42, 46)
+
+dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
-light_grey = wx.Colour(53, 53, 59)
+light_grey = wx.Colour(55, 55, 55)
+
 class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
         self.CreateStatusBar()
+        font = self.GetFont()
+        font.SetPointSize(11)
+        self.SetFont(font)
         self.StatusBar.SetBackgroundColour(light_grey)
         self.SetBackgroundColour(dark_grey)
         self.SetForegroundColour(off_white)
         self.base_panel = wx.Panel(self)
+
 
         self.notebook = flnb.FlatNotebook(self.base_panel, agwStyle=flnb.FNB_NO_NAV_BUTTONS | flnb.FNB_NO_X_BUTTON | flnb.FNB_NODRAG | flnb.FNB_DEFAULT_STYLE)
         self.notebook.SetBackgroundColour(dark_grey)
@@ -70,11 +76,14 @@ class ListPanel(wx.Panel):
         self.Bind(wx.EVT_LISTBOX, self.on_select_item, self.list_box)
 
 
-    def on_select_item(self, event):
+    def on_select_item(self, *event):
         index = self.list_box.GetSelection()
         string = self.list_box.GetString(index)
         self.view_panel.Show()
         self.view_panel.Freeze()
+        if self.view_panel.is_edited == True:
+            self.view_panel.change_colour()
+            self.view_panel.is_edited == False
         uID = db_ops.db.get_doc_id(string)
         doc = db_ops.db.get_doc_by_id(uID)
         self.view_panel.show_data(doc)
