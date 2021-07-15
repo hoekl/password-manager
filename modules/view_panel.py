@@ -463,7 +463,6 @@ class ViewPanel(wx.Panel):
                 break
 
     def delete_field(self, event):
-        # ! Check if bug is caused due to index mismatch
         self.Freeze()
         evt_source = event.EventObject
         index = int(evt_source.GetName())
@@ -481,6 +480,12 @@ class ViewPanel(wx.Panel):
         rmv_button.Destroy()
         self.num_rmv_btns -= 1
         self.number_of_fields -= 1
+        for sizer_item in self.remove_btn_sizer.__iter__():
+            i = 0
+            if i <= self.num_rmv_btns:
+                ctrl = sizer_item.GetWindow()
+                ctrl.SetName(str(i))
+                i += 1
         self.Layout()
         self.Thaw()
 
