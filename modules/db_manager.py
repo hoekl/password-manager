@@ -1,10 +1,10 @@
 import pprint
 import traceback
-
 import couchdb2
+from secrets import config
 
 pp = pprint.PrettyPrinter(indent=4)
-server = couchdb2.Server("http://admin:pwmanager@127.0.0.1:5984")
+server = config.server()
 
 
 class DataBase:

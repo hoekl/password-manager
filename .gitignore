@@ -1,3 +1,6 @@
 *pyc
 tempCodeRunnerFile.py
 shortcuts
+.VSCodeCounter
+modules/secrets/config.py
+modules/secrets/salt.key
