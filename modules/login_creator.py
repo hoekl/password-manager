@@ -4,7 +4,7 @@ from couchdb2 import CouchDB2Exception
 import wx
 import hashlib
 from modules import db_manager as db_ops
-import wx.lib.agw.genericmessagedialog as GMD
+from modules import custom_widgets as cw
 
 dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
@@ -17,10 +17,8 @@ class CreateLogin(wx.Panel):
         super(CreateLogin, self).__init__(*args, **kw)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.new_login_pnl = NewLogin(self)
-        self.launch_dialog_btn = wx.Button(self, label="Generate Password", style=wx.BORDER_NONE)
+        self.launch_dialog_btn = cw.Button(self, label="Generate Password")
         self.launch_dialog_btn.Bind(wx.EVT_BUTTON, self.on_generate)
-        self.launch_dialog_btn.SetForegroundColour(off_white)
-        self.launch_dialog_btn.SetBackgroundColour(grey_btn)
         self.main_sizer.Add(self.new_login_pnl, 1, flag=wx.ALIGN_CENTER, border=50)
         self.main_sizer.Add(
             self.launch_dialog_btn, wx.SizerFlags().Centre().Border(wx.ALL, 5)
@@ -30,16 +28,12 @@ class CreateLogin(wx.Panel):
     def on_generate(self, event):
         dialog = PWGenWindow(self, title="Generate new password")
         res = dialog.ShowModal()
-        #print(res)
         if res == 5100:
             password = dialog.txt_ctrl.Value
             self.new_login_pnl.autofill(password)
         else:
             pass
         dialog.Destroy()
-
-    def handle_autofill(self, event):
-        print(event)
 
 
     def on_refresh(self):
@@ -70,25 +64,18 @@ class NewLogin(wx.Panel):
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.btn_save = wx.Button(self, label="Save", style=wx.BORDER_NONE)
+        self.btn_save = cw.Button(self, label="Save")
         self.btn_save.Bind(wx.EVT_BUTTON, self.on_save)
-        self.btn_save.SetBackgroundColour(grey_btn)
-        self.btn_save.SetForegroundColour(off_white)
         self.button_sizer.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
-        self.btn_add_field = wx.Button(self, label="Add field", style=wx.BORDER_NONE)
+        self.btn_add_field = cw.Button(self, label="Add field")
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
-        self.btn_add_field.SetBackgroundColour(grey_btn)
-        self.btn_add_field.SetForegroundColour(off_white)
-
         self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
-        self.btn_discard = wx.Button(self, label="Discard", style=wx.BORDER_NONE)
+        self.btn_discard = cw.Button(self, label="Discard")
         self.btn_discard.Bind(wx.EVT_BUTTON, self.on_discard)
-        self.btn_discard.SetBackgroundColour(grey_btn)
-        self.btn_discard.SetForegroundColour(off_white)
         self.button_sizer.Add(self.btn_discard, 0, wx.ALIGN_CENTER, border=50)
 
         default_choices = [
@@ -159,10 +146,8 @@ class NewLogin(wx.Panel):
         self.Layout()
 
     def add_remove_btn(self):
-        rmv_button = wx.Button(self, label="Remove", name=str(self.num_rmv_btns), style=wx.BORDER_NONE)
+        rmv_button = cw.Button(self, label="Remove", name=str(self.num_rmv_btns))
         rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
-        rmv_button.SetForegroundColour(off_white)
-        rmv_button.SetBackgroundColour(grey_btn)
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
@@ -199,10 +184,9 @@ class NewLogin(wx.Panel):
         self.number_of_fields -= 1
         i = 0
         for sizer_item in self.remove_btn_sizer.__iter__():
-            if i <= self.num_rmv_btns:
-                ctrl = sizer_item.GetWindow()
-                ctrl.SetName(str(i))
-                i += 1
+            ctrl = sizer_item.GetWindow()
+            ctrl.SetName(str(i))
+            i += 1
 
         self.Layout()
         self.Thaw()
@@ -312,7 +296,6 @@ class PWGenWindow(wx.Dialog):
         )
         self.copy_button = wx.Button(self, label="Copy", size=(100, -1))
         self.autofill_button = wx.Button(self,id=wx.ID_OK, label="Use this password")
-        # self.autofill_button.Bind(wx.EVT_CLOSE, self.Parent.handle_autofill)
         self.choices_box = wx.CheckListBox(
             self,
             pos=(50, 50),

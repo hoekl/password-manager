@@ -1,6 +1,7 @@
 import wx
 import time
 from modules import db_manager as db_ops
+from modules import custom_widgets as cw
 
 
 dark_grey = wx.Colour(38, 38, 38)
@@ -47,65 +48,33 @@ class ViewPanel(wx.Panel):
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
 
-        self.btn_edit = wx.Button(
-            self, label="Edit", size=(100, -1), style=wx.BORDER_NONE
-        )
+        self.btn_edit = cw.Button(self, label="Edit")
         self.btn_edit.Bind(wx.EVT_BUTTON, self.on_edit)
-        self.btn_edit.SetBackgroundColour(grey_btn)
-        self.btn_edit.SetForegroundColour(off_white)
 
-        self.btn_save = wx.Button(
-            self, label="Save", size=(100, -1), style=wx.BORDER_NONE
-        )
+        self.btn_save = cw.Button(self, label="Save")
         self.btn_save.Bind(wx.EVT_BUTTON, self.save_edits)
         self.btn_save.Hide()
-        self.btn_save.SetBackgroundColour(grey_btn)
-        self.btn_save.SetForegroundColour(off_white)
 
-        self.btn_show_pw = wx.Button(
-            self, label="Show Password", size=(250, -1), style=wx.BORDER_NONE
-        )
+        self.btn_show_pw = cw.Button(self, label="Show Password")
         self.btn_show_pw.Bind(wx.EVT_BUTTON, self.show_pw)
         self.btn_show_pw.Hide()
-        self.btn_show_pw.SetBackgroundColour(grey_btn)
-        self.btn_show_pw.SetForegroundColour(off_white)
 
-        self.btn_hide_pw = wx.Button(
-            self, label="Hide Password", size=(250, -1), style=wx.BORDER_NONE
-        )
+        self.btn_hide_pw = cw.Button(self, label="Hide Password")
         self.btn_hide_pw.Bind(wx.EVT_BUTTON, self.hide_pw)
-        self.btn_hide_pw.SetBackgroundColour(grey_btn)
-        self.btn_hide_pw.SetForegroundColour(off_white)
 
-        self.btn_copy_pw = wx.Button(
-            self, label="Copy Password", size=(250, -1), style=wx.BORDER_NONE
-        )
+        self.btn_copy_pw = cw.Button(self, label="Copy Password")
         self.btn_copy_pw.Bind(wx.EVT_BUTTON, self.copy_pw)
-        self.btn_copy_pw.SetBackgroundColour(grey_btn)
-        self.btn_copy_pw.SetForegroundColour(off_white)
 
-        self.btn_delete_entry = wx.Button(
-            self, label="Delete", size=(150, -1), style=wx.BORDER_NONE
-        )
+        self.btn_delete_entry = cw.Button(self, label="Delete")
         self.btn_delete_entry.Bind(wx.EVT_BUTTON, self.on_delete)
-        self.btn_delete_entry.SetBackgroundColour(grey_btn)
-        self.btn_delete_entry.SetForegroundColour(off_white)
 
-        self.btn_discard_edits = wx.Button(
-            self, label="Discard Changes", size=(250, -1), style=wx.BORDER_NONE
-        )
+        self.btn_discard_edits = cw.Button(self, label="Discard Changes")
         self.btn_discard_edits.Bind(wx.EVT_BUTTON, self.discard_edits)
         self.btn_discard_edits.Hide()
-        self.btn_discard_edits.SetBackgroundColour(grey_btn)
-        self.btn_discard_edits.SetForegroundColour(off_white)
 
-        self.btn_add_field = wx.Button(
-            self, label="Add field", size=(250, -1), style=wx.BORDER_NONE
-        )
+        self.btn_add_field = cw.Button(self, label="Add field")
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.user_add_field)
         self.btn_add_field.Hide()
-        self.btn_add_field.SetBackgroundColour(grey_btn)
-        self.btn_add_field.SetForegroundColour(off_white)
 
         self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer1.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
@@ -204,10 +173,8 @@ class ViewPanel(wx.Panel):
         self.Parent.SendSizeEvent()
 
     def add_remove_btn(self):
-        rmv_button = wx.Button(self, label="Remove", name=str(self.num_rmv_btns), style=wx.BORDER_NONE)
+        rmv_button = cw.Button(self, label="Remove", name=str(self.num_rmv_btns))
         rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
-        rmv_button.SetBackgroundColour(grey_btn)
-        rmv_button.SetForegroundColour(off_white)
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
@@ -480,12 +447,11 @@ class ViewPanel(wx.Panel):
         rmv_button.Destroy()
         self.num_rmv_btns -= 1
         self.number_of_fields -= 1
+        i = 0
         for sizer_item in self.remove_btn_sizer.__iter__():
-            i = 0
-            if i <= self.num_rmv_btns:
-                ctrl = sizer_item.GetWindow()
-                ctrl.SetName(str(i))
-                i += 1
+            ctrl = sizer_item.GetWindow()
+            ctrl.setName(str(i))
+            i += 1
         self.Layout()
         self.Thaw()
 
