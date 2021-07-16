@@ -7,14 +7,14 @@ import os
 base_path = os.path.abspath(os.path.dirname(__file__))
 
 def get_path():
-    data_dir = os.path.join(base_path, "secrets" + os.sep)
+    data_dir = os.path.join(base_path, "configuration" + os.sep)
     return data_dir
 
 def read_salt():
-    path = os.path.join(get_path(), "salt.key")
+    path = os.path.join(get_path(), "db_salt//salt.key")
     with open(path, "rb") as f:
-        key = f.read()
-    return key
+        salt = f.read()
+    return salt
 
 
 def get_key(salt, password):
@@ -25,7 +25,8 @@ def get_key(salt, password):
 
 def write_salt():
     salt = secrets.token_bytes(32)
-    with open("salt.key", "wb") as f:
+    path = os.path.join(get_path(), "salt.key")
+    with open(path, "wb") as f:
         f.write(salt)
     return salt
 
@@ -59,25 +60,27 @@ def read_encrypted():
         encrypted = file.read()
     return encrypted
 
+def encrypt_temp(password, message):
+    salt = read_salt()
+    key = get_key(salt, password)
+    encrypt(message, key)
 
-def decrypt(pw):
+def decrypt(salt, pw, message):
     salt = read_salt()
     password = hash_input(pw)
     key = derive_key(salt, password)
     f = Fernet(key)
-    msg = read_encrypted()
+    msg = message.encode()
     decrypted = f.decrypt(msg)
-    print(decrypted)
+    return decrypted
 
 
 if __name__ == "__main__":
     choice = input("1 to encrypt, 2 to decrypt:")
     if choice == "1":
         pw = input("Enter password to use:")
-        salt = write_salt()
-        key = get_key(salt, pw)
         message = input("Enter message to encrypt:")
-        encrypt(message, key)
+        encrypt_temp(pw, message)
 
     if choice == "2":
         pw = input("Enter password to decrypt:")

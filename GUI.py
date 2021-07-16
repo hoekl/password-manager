@@ -22,6 +22,7 @@ light_grey = wx.Colour(55, 55, 55)
 class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
+        password, salt = self.get_pw()
         self.CreateStatusBar()
         font = self.GetFont()
         font.SetPointSize(11)
@@ -36,7 +37,7 @@ class BaseFrame(wx.Frame):
         self.notebook.SetBackgroundColour(dark_grey)
         first_panel = login.CreateLogin(self.notebook)
         first_panel.SetBackgroundColour(dark_grey)
-        second_panel = ListPanel(self.notebook)
+        second_panel = ListPanel(self.notebook, password, salt)
         second_panel.SetBackgroundColour(dark_grey)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
@@ -51,12 +52,32 @@ class BaseFrame(wx.Frame):
         new_list_panel = ListPanel(self.notebook)
         self.notebook.AddPage(new_list_panel, "Logins", False)
 
+    def get_pw(self):
+        dialog = wx.PasswordEntryDialog(self, message="Enter your password", style=wx.OK | wx.CANCEL)
+        res = dialog.ShowModal()
+        if res == 5100:
+            try:
+                password = dialog.Value
+                salt = db_ops.verify_password(password)
+                dialog.Destroy()
+                if salt:
+                    return password, salt
+                else:
+                    dialog.Destroy()
+                    self.get_pw()
+            except Exception:
+                dialog.Destroy()
+                self.get_pw()
 
 class ListPanel(wx.Panel):
-    def __init__(self, *args, **kw):
-        super(ListPanel, self).__init__(*args, **kw)
+    def __init__(self,parent,password=None, salt=None):
+        super().__init__(parent)
+        if password:
+            self.password = password
+        if salt:
+            self.salt = salt
         self.SetBackgroundColour(dark_grey)
-        choices = db_ops.db.get_logins_list()
+        choices = db_ops.db.get_logins_list(self.password, self.salt)
         self.choices = sorted(choices)
         self.list_box = wx.ListBox(
             self, size=(400, -1), choices=self.choices, style=wx.LB_SINGLE | wx.BORDER_NONE
@@ -70,7 +91,6 @@ class ListPanel(wx.Panel):
         self.searchbox.Bind(wx.EVT_KILL_FOCUS, self.set_search)
         self.list_box.SetBackgroundColour(dark_grey)
         self.list_box.SetForegroundColour(off_white)
-        # self.scrolled_window.SetScrollbars(20, 20, 50, 50)
         self.list_box.SetBackgroundColour(dark_grey)
         self.view_panel = vp.ViewPanel(self)
         self.view_panel.SetForegroundColour(off_white)
@@ -122,7 +142,8 @@ class ListPanel(wx.Panel):
             self.view_panel.is_edited == False
         uID = db_ops.db.get_doc_id(string)
         doc = db_ops.db.get_doc_by_id(uID)
-        self.view_panel.show_data(doc)
+        decrypted_doc = db_ops.db.decrypt_individual(doc, self.password, self.salt)
+        self.view_panel.show_data(decrypted_doc)
         self.SendSizeEvent()
         self.view_panel.Thaw()
 

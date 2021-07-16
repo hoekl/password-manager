@@ -2,5 +2,5 @@
 tempCodeRunnerFile.py
 shortcuts
 .VSCodeCounter
-modules/secrets/config.py
-modules/secrets/salt.key
+modules/configuration/config.py
+modules/configuration/db_salt/salt.key

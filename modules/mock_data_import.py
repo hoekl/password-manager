@@ -2,7 +2,7 @@ import couchdb2
 import json
 import hashlib
 import encryption_handler as crypto
-from secrets import config
+from configuration import config
 
 salt = crypto.read_salt()
 
