@@ -13,10 +13,10 @@ grey_btn = wx.Colour(69, 69, 69)
 edit_colour = wx.Colour(63, 63, 63)
 
 class CreateLogin(wx.Panel):
-    def __init__(self, *args, **kw):
-        super(CreateLogin, self).__init__(*args, **kw)
+    def __init__(self, parent, fernet=None):
+        super(CreateLogin, self).__init__(parent)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.new_login_pnl = NewLogin(self)
+        self.new_login_pnl = NewLogin(self, fernet)
         self.launch_dialog_btn = cw.Button(self, label="Generate Password")
         self.launch_dialog_btn.Bind(wx.EVT_BUTTON, self.on_generate)
         self.main_sizer.Add(self.new_login_pnl, 1, flag=wx.ALIGN_CENTER, border=50)
@@ -51,8 +51,10 @@ class CreateLogin(wx.Panel):
 
 
 class NewLogin(wx.Panel):
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
+    def __init__(self, parent, fernet=None):
+        super().__init__(parent)
+        if fernet:
+            self.fernet = fernet
         self.number_of_fields = 0
         self.num_rmv_btns = 0
         self.doc = {}
@@ -219,6 +221,8 @@ class NewLogin(wx.Panel):
                 pass
             else:
                 self.doc.update({key: value})
+
+        self.doc = self.fernet.encrypt_individual(self.doc)
 
     def create_UID(self):
         doc_hash = hashlib.sha256(str(self.doc).encode())

@@ -2,6 +2,9 @@ import wx
 import time
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
 
 
 dark_grey = wx.Colour(38, 38, 38)
@@ -314,8 +317,6 @@ class ViewPanel(wx.Panel):
     def save_edits(self, event):
         self.is_edited == True
         new_doc = {}
-        new_doc.update({"_id": self.current_dataobj.id})
-        new_doc.update({"_rev": self.current_dataobj.rev})
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             key = txtbox.GetName()
@@ -326,19 +327,22 @@ class ViewPanel(wx.Panel):
                 new_doc.update({key: value})
             txtbox.SetEditable(False)
 
+        encrypted_doc = self.Parent.fernet.encrypt_individual(new_doc)
+        encrypted_doc.update({"_id": self.current_dataobj.id})
+        encrypted_doc.update({"_rev": self.current_dataobj.rev})
         self.hide_pw(event)
         self.btn_save.Hide()
         self.btn_edit.Show()
         self.btn_add_field.Hide()
         self.btn_discard_edits.Hide()
         self.bounding_sizer.Layout()
-        db_ops.db.put(new_doc)
+        db_ops.db.put(encrypted_doc)
         self.Freeze()
         self.convert_txtbox()
         self.Parent.on_select_item()
         self.Layout()
         self.Thaw()
-        print(new_doc)
+        pp.pprint(encrypted_doc)
 
     def convert_txtbox(self):
         self.Freeze()

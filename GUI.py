@@ -46,9 +46,9 @@ class BaseFrame(wx.Frame):
             | flnb.FNB_DEFAULT_STYLE,
         )
         self.notebook.SetBackgroundColour(dark_grey)
-        first_panel = login.CreateLogin(self.notebook)
+        first_panel = login.CreateLogin(self.notebook, self.fernet)
         first_panel.SetBackgroundColour(dark_grey)
-        second_panel = ListPanel(self.notebook, self.password, self.salt)
+        second_panel = ListPanel(self.notebook, self.fernet)
         second_panel.SetBackgroundColour(dark_grey)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
@@ -60,7 +60,7 @@ class BaseFrame(wx.Frame):
 
     def refresh(self):
         self.notebook.DeletePage(1)
-        new_list_panel = ListPanel(self.notebook)
+        new_list_panel = ListPanel(self.notebook, self.fernet)
         self.notebook.AddPage(new_list_panel, "Logins", False)
 
     def get_pw(self):
@@ -71,8 +71,7 @@ class BaseFrame(wx.Frame):
         if res == 5100:
             password = dialog.Value
             salt = db_ops.verify_password(password)
-            self.password = password
-            self.salt = salt
+            self.fernet = db_ops.Fernet_obj(salt, password)
             dialog.Destroy()
             if salt:
                 return True
@@ -83,14 +82,12 @@ class BaseFrame(wx.Frame):
 
 
 class ListPanel(wx.Panel):
-    def __init__(self, parent, password=None, salt=None):
+    def __init__(self, parent, fernet=None):
         super().__init__(parent)
-        if password:
-            self.password = password
-        if salt:
-            self.salt = salt
+        if fernet:
+            self.fernet = fernet
         self.SetBackgroundColour(dark_grey)
-        choices = db_ops.db.get_logins_list(self.password, self.salt)
+        choices = db_ops.db.get_logins_list(self.fernet)
         self.choices = sorted(choices)
         self.list_box = wx.ListBox(
             self,
@@ -159,7 +156,7 @@ class ListPanel(wx.Panel):
             self.view_panel.is_edited == False
         uID = db_ops.db.get_doc_id(string)
         doc = db_ops.db.get_doc_by_id(uID)
-        decrypted_doc = db_ops.db.decrypt_individual(doc, self.password, self.salt)
+        decrypted_doc = self.fernet.decrypt_individual(doc)
         self.view_panel.show_data(decrypted_doc)
         self.SendSizeEvent()
         self.view_panel.Thaw()

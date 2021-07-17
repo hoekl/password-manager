@@ -29,9 +29,9 @@ class DataBase:
         else:
             print("Server is not available")
 
-    def get_logins_list(self, password, salt):
+    def get_logins_list(self, fernet):
         res = self.query_all()
-        decrypted_docs = self.decrypt_initial(res, password, salt)
+        decrypted_docs = fernet.decrypt_initial(res)
         self.format_query_response(decrypted_docs)
         choices_list = list(self.id_dict.keys())
 
@@ -76,45 +76,56 @@ class DataBase:
             print(traceback.print_exc())
 
 
-    def decrypt_initial(self, res, password, salt):
+class Fernet_obj:
+    def __init__(self, salt, password) -> crypto.Fernet:
         cryptokey = crypto.get_key(salt, password)
-        f = crypto.Fernet(cryptokey)
-        docs = {"doc_array":[]}
+        self.fernet = crypto.Fernet(cryptokey)
+
+    def decrypt_initial(self, res):
+        docs = {"doc_array": []}
         for doc in res["docs"]:
             doc_temp = {}
             for key, value in doc.items():
                 if key != "_id" and key != "_rev":
-                    d_key = f.decrypt(key.encode())
-                    d_value = f.decrypt(value.encode())
+                    d_key = self.fernet.decrypt(key.encode())
+                    d_value = self.fernet.decrypt(value.encode())
                     strkey = d_key.decode()
                     strvalue = d_value.decode()
-                    doc_temp.update({strkey:strvalue})
+                    doc_temp.update({strkey: strvalue})
                 elif key == "_id":
-                    doc_temp.update({key:value})
+                    doc_temp.update({key: value})
             docs["doc_array"].append(doc_temp)
         return docs
 
-    def decrypt_individual(self, doc, password, salt):
-        cryptokey = crypto.get_key(salt, password)
-        f = crypto.Fernet(cryptokey)
+    def decrypt_individual(self, doc):
         decrypted_doc = {}
         for key, value in doc.items():
             if key != "_id" and key != "_rev":
-                d_key = f.decrypt(key.encode())
-                d_value = f.decrypt(value.encode())
+                d_key = self.fernet.decrypt(key.encode())
+                d_value = self.fernet.decrypt(value.encode())
                 strkey = d_key.decode()
                 strvalue = d_value.decode()
-                decrypted_doc.update({strkey:strvalue})
+                decrypted_doc.update({strkey: strvalue})
             else:
-                decrypted_doc.update({key:value})
+                decrypted_doc.update({key: value})
 
         return decrypted_doc
+
+    def encrypt_individual(self, doc):
+        encrypted_doc = {}
+        for key, value in doc.items():
+            e_key = self.fernet.encrypt(key.encode())
+            e_value = self.fernet.encrypt(value.encode())
+            strkey = e_key.decode()
+            strvalue = e_value.decode()
+            encrypted_doc.update({strkey: strvalue})
+
+        return encrypted_doc
 
 
 class VerifyLogin(DataBase):
     def __init__(self, db_name) -> couchdb2.Database:
         super().__init__(db_name)
-
 
     def verify(self, salt, password):
         res = self.query_all()
@@ -126,9 +137,13 @@ class VerifyLogin(DataBase):
         except Exception:
             print("Invalid password")
 
-    def setup(self):    # ! Modify to accept new string
-        v_doc = {"verify": "gAAAAABg8YmgpdMUAEGvKjaKcDLZJmzLkHCxTJkyexDeB_FYLS7lGHpmyQlYj51UPsWMo8iEnLO1Nmla1oRLJA-6ixbEu7jQii3Jr-SsMVzG9mv_P-ddU8A="}
+    def setup(self):  # ! Modify to accept new string
+        v_doc = {
+            "verify": "gAAAAABg8YmgpdMUAEGvKjaKcDLZJmzLkHCxTJkyexDeB_FYLS7lGHpmyQlYj51UPsWMo8iEnLO1Nmla1oRLJA-6ixbEu7jQii3Jr-SsMVzG9mv_P-ddU8A="
+        }
         self.put(v_doc)
+
+
 class LoginData:
     def __init__(self, doc=None):
         if doc != None:
@@ -144,6 +159,7 @@ class LoginData:
 
 db = DataBase("encrypted_mock_data")
 
+
 def verify_password(password):
     db = VerifyLogin("verification")
     salt = crypto.read_salt()
@@ -152,6 +168,7 @@ def verify_password(password):
         return salt
     else:
         return False
+
 
 if __name__ == "__main__":
     pass
