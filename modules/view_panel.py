@@ -10,6 +10,7 @@ light_grey = wx.Colour(55, 55, 55)
 grey_btn = wx.Colour(69, 69, 69)
 edit_colour = wx.Colour(63, 63, 63)
 
+
 class ViewPanel(wx.Panel):
     def __init__(self, *agrs, **kw):
         super().__init__(*agrs, **kw)
@@ -120,6 +121,8 @@ class ViewPanel(wx.Panel):
         self.number_of_fields += 1
         new_label = wx.StaticText(self)
         new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
+        new_field.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
+        new_field.SetMinSize(self.FromDIP(wx.Size(300, -1)))
         new_label.SetForegroundColour(off_white)
         new_field.SetForegroundColour(off_white)
         new_field.SetBackgroundColour(light_grey)
@@ -232,12 +235,12 @@ class ViewPanel(wx.Panel):
                 temp_ctrl = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
                 temp_ctrl.SetBackgroundColour(light_grey)
                 temp_ctrl.SetForegroundColour(off_white)
+                temp_ctrl.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
+                temp_ctrl.SetMinSize(self.FromDIP(wx.Size(300, -1)))
                 self.txtbox_sizer.Replace(ctrl, temp_ctrl)
                 ctrl.Destroy()
 
     def add_data_to_view(self, data_dict):
-        panel_size = self.Parent.sizer.GetSize()
-        size_x = panel_size[0] * 0.6
         key_index = 0
         value_index = 0
         dict_keys = list(data_dict.keys())
@@ -253,9 +256,6 @@ class ViewPanel(wx.Panel):
             box_content = dict_values[value_index]
             txtbox.SetLabel(box_content)
             txtbox.SetName(dict_keys[value_index])
-            size_y = txtbox.GetBestHeight(size_x)
-            new_size = (size_x, size_y)
-            txtbox.SetMinSize(new_size)
             txtbox.SetEditable(False)
             value_index += 1
 
@@ -266,11 +266,15 @@ class ViewPanel(wx.Panel):
             ctrl = item.GetWindow()
             if ctrl.GetName() == "password":
                 pw_ctrl = wx.TextCtrl(
-                    self, value="abcdefg", style=wx.TE_READONLY | wx.TE_PASSWORD | wx.BORDER_SIMPLE
+                    self,
+                    value="abcdefg",
+                    style=wx.TE_READONLY | wx.TE_PASSWORD | wx.BORDER_SIMPLE,
                 )
                 pw_ctrl.SetForegroundColour(off_white)
                 pw_ctrl.SetBackgroundColour(light_grey)
                 pw_ctrl.SetName("password")
+                pw_ctrl.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
+                pw_ctrl.SetMinSize(self.FromDIP(wx.Size(300, -1)))
                 self.txtbox_sizer.Hide(ctrl)
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Destroy()
@@ -373,11 +377,14 @@ class ViewPanel(wx.Panel):
             if lbl == "password":
                 self.Freeze()
                 pw_ctrl = wx.TextCtrl(
-                    self, value=self.current_dataobj.password, style=wx.TE_READONLY | wx.BORDER_SIMPLE
+                    self,
+                    value=self.current_dataobj.password,
+                    style=wx.TE_READONLY | wx.BORDER_SIMPLE,
                 )
                 pw_ctrl.SetBackgroundColour(light_grey)
                 pw_ctrl.SetForegroundColour(off_white)
                 pw_ctrl.SetName("password")
+                pw_ctrl.SetMaxSize(self.FromDIP(wx.Size(300, 50)))
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Hide()
                 ctrl.Destroy()

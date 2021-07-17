@@ -19,10 +19,16 @@ dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
 light_grey = wx.Colour(55, 55, 55)
 
+
 class BaseFrame(wx.Frame):
     def __init__(self, *args, **kw):
         super(BaseFrame, self).__init__(*args, **kw)
-        password, salt = self.get_pw()
+        self.authenticated = False
+        while self.authenticated == False:
+            if self.get_pw() == False:
+                self.get_pw()
+            else:
+                self.authenticated = True
         self.CreateStatusBar()
         font = self.GetFont()
         font.SetPointSize(11)
@@ -32,12 +38,17 @@ class BaseFrame(wx.Frame):
         self.SetForegroundColour(off_white)
         self.base_panel = wx.Panel(self)
 
-
-        self.notebook = flnb.FlatNotebook(self.base_panel, agwStyle=flnb.FNB_NO_NAV_BUTTONS | flnb.FNB_NO_X_BUTTON | flnb.FNB_NODRAG | flnb.FNB_DEFAULT_STYLE)
+        self.notebook = flnb.FlatNotebook(
+            self.base_panel,
+            agwStyle=flnb.FNB_NO_NAV_BUTTONS
+            | flnb.FNB_NO_X_BUTTON
+            | flnb.FNB_NODRAG
+            | flnb.FNB_DEFAULT_STYLE,
+        )
         self.notebook.SetBackgroundColour(dark_grey)
         first_panel = login.CreateLogin(self.notebook)
         first_panel.SetBackgroundColour(dark_grey)
-        second_panel = ListPanel(self.notebook, password, salt)
+        second_panel = ListPanel(self.notebook, self.password, self.salt)
         second_panel.SetBackgroundColour(dark_grey)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
@@ -53,24 +64,26 @@ class BaseFrame(wx.Frame):
         self.notebook.AddPage(new_list_panel, "Logins", False)
 
     def get_pw(self):
-        dialog = wx.PasswordEntryDialog(self, message="Enter your password", style=wx.OK | wx.CANCEL)
+        dialog = wx.PasswordEntryDialog(
+            self, message="Enter your password", style=wx.OK | wx.CANCEL
+        )
         res = dialog.ShowModal()
         if res == 5100:
-            try:
-                password = dialog.Value
-                salt = db_ops.verify_password(password)
-                dialog.Destroy()
-                if salt:
-                    return password, salt
-                else:
-                    dialog.Destroy()
-                    self.get_pw()
-            except Exception:
-                dialog.Destroy()
-                self.get_pw()
+            password = dialog.Value
+            salt = db_ops.verify_password(password)
+            self.password = password
+            self.salt = salt
+            dialog.Destroy()
+            if salt:
+                return True
+            else:
+                return False
+        if res == 5101:
+            wx.Exit()
+
 
 class ListPanel(wx.Panel):
-    def __init__(self,parent,password=None, salt=None):
+    def __init__(self, parent, password=None, salt=None):
         super().__init__(parent)
         if password:
             self.password = password
@@ -80,10 +93,15 @@ class ListPanel(wx.Panel):
         choices = db_ops.db.get_logins_list(self.password, self.salt)
         self.choices = sorted(choices)
         self.list_box = wx.ListBox(
-            self, size=(400, -1), choices=self.choices, style=wx.LB_SINGLE | wx.BORDER_NONE
+            self,
+            size=(400, -1),
+            choices=self.choices,
+            style=wx.LB_SINGLE | wx.BORDER_NONE,
         )
 
-        self.searchbox = wx.TextCtrl(self, value="\U0001F50E Search...", style=wx.BORDER_SIMPLE)
+        self.searchbox = wx.TextCtrl(
+            self, value="\U0001F50E Search...", style=wx.BORDER_SIMPLE
+        )
         self.searchbox.SetBackgroundColour(light_grey)
         self.searchbox.SetForegroundColour(off_white)
         self.searchbox.Bind(wx.EVT_KEY_UP, self.search)
@@ -131,7 +149,6 @@ class ListPanel(wx.Panel):
             pass
         self.searchbox.SetValue("\U0001F50E Search...")
 
-
     def on_select_item(self, *event):
         index = self.list_box.GetSelection()
         string = self.list_box.GetString(index)
@@ -152,6 +169,7 @@ if __name__ == "__main__":
     # When this module is run (not imported) then create the app, the
     # frame, show it, and start the event loop.
     app = wx.App()
+    app.SetExitOnFrameDelete(True)
     frm = BaseFrame(None, title="   Password Manager")
     frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
     frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
