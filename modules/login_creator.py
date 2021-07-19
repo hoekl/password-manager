@@ -116,16 +116,16 @@ class NewLogin(wx.Panel):
 
     def add_field(self, *default_choices):
         if default_choices:
-            label_box = wx.TextCtrl(self, value=default_choices[self.number_of_fields], style=wx.BORDER_SIMPLE)
-            txtbox = wx.TextCtrl(self, name=default_choices[self.number_of_fields], style=wx.BORDER_SIMPLE)
+            label_box = cw.TextCtrl(self, value=default_choices[self.number_of_fields])
+            txtbox = cw.TextCtrl(self, name=default_choices[self.number_of_fields])
         else:
-            label_box = wx.TextCtrl(self, name=str(self.number_of_fields), style=wx.BORDER_SIMPLE)
-            txtbox = wx.TextCtrl(self, name=str(self.number_of_fields), style=wx.BORDER_SIMPLE)
+            label_box = cw.TextCtrl(self, name=str(self.number_of_fields))
+            txtbox = cw.TextCtrl(self, name=str(self.number_of_fields))
 
-        label_box.SetBackgroundColour(edit_colour)
-        label_box.SetForegroundColour(off_white)
-        txtbox.SetBackgroundColour(edit_colour)
-        txtbox.SetForegroundColour(off_white)
+        label_box.set_size()
+        txtbox.set_size()
+        label_box.make_editable()
+        txtbox.make_editable()
         label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss)
         self.label_sizer.Add(
             label_box,

@@ -152,8 +152,7 @@ class ListPanel(wx.Panel):
         self.view_panel.Show()
         self.view_panel.Freeze()
         if self.view_panel.is_edited == True:
-            self.view_panel.change_colour()
-            self.view_panel.is_edited == False
+            self.view_panel.to_readonly()
         uID = db_ops.db.get_doc_id(string)
         doc = db_ops.db.get_doc_by_id(uID)
         decrypted_doc = self.fernet.decrypt_individual(doc)

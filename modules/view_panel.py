@@ -3,8 +3,8 @@ import time
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
 import pprint
-pp = pprint.PrettyPrinter(indent=4)
 
+pp = pprint.PrettyPrinter(indent=4)
 
 
 dark_grey = wx.Colour(38, 38, 38)
@@ -122,13 +122,9 @@ class ViewPanel(wx.Panel):
 
     def add_field(self):
         self.number_of_fields += 1
-        new_label = wx.StaticText(self)
-        new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
-        new_field.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
-        new_field.SetMinSize(self.FromDIP(wx.Size(300, -1)))
-        new_label.SetForegroundColour(off_white)
-        new_field.SetForegroundColour(off_white)
-        new_field.SetBackgroundColour(light_grey)
+        new_label = cw.StaticText(self)
+        new_field = cw.TextCtrl(self)
+        new_field.set_size()
         self.label_sizer.Add(
             new_label,
             1,
@@ -156,12 +152,10 @@ class ViewPanel(wx.Panel):
 
     def user_add_field(self, event):
         self.number_of_fields += 1
-        new_label = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
-        new_field = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
-        new_label.SetForegroundColour(off_white)
-        new_field.SetForegroundColour(off_white)
-        new_label.SetBackgroundColour(edit_colour)
-        new_field.SetBackgroundColour(edit_colour)
+        new_label = cw.TextCtrl(self)
+        new_field = cw.TextCtrl(self)
+        new_label.make_editable()
+        new_field.make_editable()
         new_label.Bind(wx.EVT_KILL_FOCUS, self.set_field_name, new_label)
         self.label_sizer.Add(
             new_label,
@@ -208,59 +202,54 @@ class ViewPanel(wx.Panel):
         tic = time.perf_counter()
 
         self.current_dataobj = db_ops.LoginData(doc)
-
-        self.create_view(self.current_dataobj.data)
+        fields_needed = len(self.current_dataobj.data)
+        self.create_view(fields_needed, self.current_dataobj.data)
 
         toc = time.perf_counter()
 
         print(f"Function executed in {toc-tic:0.4f} seconds")
 
-    def create_view(self, data_dict):
-        dict_length = len(data_dict)
-        if dict_length == self.number_of_fields:
+    def create_view(self, fields_needed, data_dict):
+        if fields_needed == self.number_of_fields:
             self.remove_pw_field()
             self.mng_remove_btns()
             self.lbl_and_box_sizer.Hide(self.remove_btn_sizer)
             self.convert_txtbox()
             self.add_data_to_view(data_dict)
-        elif dict_length > self.number_of_fields:
+        elif fields_needed > self.number_of_fields:
             self.add_field()
-            self.create_view(data_dict)
-        elif dict_length < self.number_of_fields:
+            self.create_view(fields_needed, data_dict)
+        elif fields_needed < self.number_of_fields:
             self.remove_field()
-            self.create_view(data_dict)
+            self.create_view(fields_needed, data_dict)
 
     def remove_pw_field(self):
         for sizer_item in self.txtbox_sizer.__iter__():
             ctrl = sizer_item.GetWindow()
             if ctrl.GetName() == "password":
                 self.txtbox_sizer.Hide(ctrl)
-                temp_ctrl = wx.TextCtrl(self, style=wx.BORDER_SIMPLE)
-                temp_ctrl.SetBackgroundColour(light_grey)
-                temp_ctrl.SetForegroundColour(off_white)
-                temp_ctrl.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
-                temp_ctrl.SetMinSize(self.FromDIP(wx.Size(300, -1)))
+                temp_ctrl = cw.TextCtrl(self)
+                temp_ctrl.set_size()
                 self.txtbox_sizer.Replace(ctrl, temp_ctrl)
                 ctrl.Destroy()
 
     def add_data_to_view(self, data_dict):
-        key_index = 0
-        value_index = 0
+        index = 0
         dict_keys = list(data_dict.keys())
         dict_values = list(data_dict.values())
 
         for lblsizer_item in self.label_sizer.__iter__():
             label = lblsizer_item.GetWindow()
-            label.SetLabel(dict_keys[key_index])
-            key_index += 1
+            label.SetLabel(dict_keys[index])
+            index += 1
 
+        index = 0
         for tbox_sizer_item in self.txtbox_sizer.__iter__():
             txtbox = tbox_sizer_item.GetWindow()
-            box_content = dict_values[value_index]
+            box_content = dict_values[index]
             txtbox.SetLabel(box_content)
-            txtbox.SetName(dict_keys[value_index])
-            txtbox.SetEditable(False)
-            value_index += 1
+            txtbox.SetName(dict_keys[index])
+            index += 1
 
         self.set_style_pw()
 
@@ -268,16 +257,8 @@ class ViewPanel(wx.Panel):
         for item in self.txtbox_sizer.__iter__():
             ctrl = item.GetWindow()
             if ctrl.GetName() == "password":
-                pw_ctrl = wx.TextCtrl(
-                    self,
-                    value="abcdefg",
-                    style=wx.TE_READONLY | wx.TE_PASSWORD | wx.BORDER_SIMPLE,
-                )
-                pw_ctrl.SetForegroundColour(off_white)
-                pw_ctrl.SetBackgroundColour(light_grey)
-                pw_ctrl.SetName("password")
-                pw_ctrl.SetMaxSize(self.FromDIP(wx.Size(500, -1)))
-                pw_ctrl.SetMinSize(self.FromDIP(wx.Size(300, -1)))
+                pw_ctrl = cw.PasswordCtrl(self)
+                pw_ctrl.set_size()
                 self.txtbox_sizer.Hide(ctrl)
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Destroy()
@@ -286,21 +267,20 @@ class ViewPanel(wx.Panel):
                 break
 
     def on_edit(self, event):
+        self.is_edited = True
         self.Freeze()
         self.show_pw(event)
         self.btn_show_pw.Hide()
         self.btn_hide_pw.Hide()
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
-            txtbox.SetEditable(True)
-            txtbox.SetBackgroundColour(edit_colour)
+            txtbox.make_editable()
         self.convert_statictxt()
         self.lbl_and_box_sizer.Show(self.remove_btn_sizer)
         self.btn_edit.Hide()
         self.btn_save.Show()
         self.btn_discard_edits.Show()
         self.btn_add_field.Show()
-        self.is_edited = True
         self.Layout()
         self.Thaw()
 
@@ -315,7 +295,6 @@ class ViewPanel(wx.Panel):
             self.mng_remove_btns()
 
     def save_edits(self, event):
-        self.is_edited == True
         new_doc = {}
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
@@ -363,11 +342,10 @@ class ViewPanel(wx.Panel):
         for sizer_item in self.label_sizer.__iter__():
             item = sizer_item.GetWindow()
             if item.ClassName == "wxStaticText":
-                value = item.Label
-                txtctrl = wx.TextCtrl(self, value=value, style=wx.BORDER_SIMPLE)
+                txtctrl = cw.TextCtrl(self)
+                txtctrl.SetValue(item.Label)
                 txtctrl.Bind(wx.EVT_KILL_FOCUS, self.set_field_name)
-                txtctrl.SetBackgroundColour(edit_colour)
-                txtctrl.SetForegroundColour(off_white)
+                txtctrl.make_editable()
                 self.label_sizer.Replace(item, txtctrl)
                 item.Destroy()
 
@@ -380,15 +358,10 @@ class ViewPanel(wx.Panel):
             lbl = ctrl.GetName()
             if lbl == "password":
                 self.Freeze()
-                pw_ctrl = wx.TextCtrl(
-                    self,
-                    value=self.current_dataobj.password,
-                    style=wx.TE_READONLY | wx.BORDER_SIMPLE,
+                pw_ctrl = cw.TextCtrl(
+                    self, value=self.current_dataobj.password, name="password"
                 )
-                pw_ctrl.SetBackgroundColour(light_grey)
-                pw_ctrl.SetForegroundColour(off_white)
-                pw_ctrl.SetName("password")
-                pw_ctrl.SetMaxSize(self.FromDIP(wx.Size(300, 50)))
+                pw_ctrl.set_size()
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Hide()
                 ctrl.Destroy()
@@ -423,10 +396,11 @@ class ViewPanel(wx.Panel):
         self.Layout()
         self.Thaw()
 
-    def change_colour(self):
+    def to_readonly(self):
         for sizer_item in self.txtbox_sizer.__iter__():
-            statictxt = sizer_item.GetWindow()
-            statictxt.SetBackgroundColour(light_grey)
+            txtbox = sizer_item.GetWindow()
+            txtbox.make_readonly()
+        self.is_edited = False
 
     def set_field_name(self, event):
         event.Skip()
