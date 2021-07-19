@@ -13,10 +13,10 @@ grey_btn = wx.Colour(69, 69, 69)
 edit_colour = wx.Colour(63, 63, 63)
 
 class CreateLogin(wx.Panel):
-    def __init__(self, parent, fernet=None):
-        super(CreateLogin, self).__init__(parent)
+    def __init__(self, parent):
+        super().__init__(parent)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.new_login_pnl = NewLogin(self, fernet)
+        self.new_login_pnl = NewLogin(self)
         self.main_sizer.Add(self.new_login_pnl, 1, flag=wx.ALIGN_CENTER, border=50)
         self.SetSizer(self.main_sizer)
 
@@ -33,10 +33,8 @@ class CreateLogin(wx.Panel):
 
 
 class NewLogin(wx.Panel):
-    def __init__(self, parent, fernet=None):
+    def __init__(self, parent):
         super().__init__(parent)
-        if fernet:
-            self.fernet = fernet
         self.number_of_fields = 0
         self.num_rmv_btns = 0
         self.doc = {}
@@ -213,24 +211,6 @@ class NewLogin(wx.Panel):
                 txtbox.SetValue(password)
                 break
 
-    def get_values(self):
-        for sizer_item in self.txtbox_sizer.__iter__():
-            ctrl = sizer_item.GetWindow()
-            key = ctrl.GetName()
-            value = ctrl.GetValue()
-            if key == "" or value == "":
-                pass
-            else:
-                self.doc.update({key: value})
-
-        self.doc = self.fernet.encrypt_individual(self.doc)
-
-    def create_UID(self):
-        doc_hash = hashlib.sha256(str(self.doc).encode())
-        hex_hash = doc_hash.hexdigest()
-        str_hash = str(hex_hash)
-        self.doc.update({"_id": str_hash})
-
     def on_save(self, event):
         self.get_values()
         if self.doc.values():
@@ -247,6 +227,22 @@ class NewLogin(wx.Panel):
                 print(e)
         else:
             self.on_fail()
+
+    def get_values(self):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            ctrl = sizer_item.GetWindow()
+            key = ctrl.GetName()
+            value = ctrl.GetValue()
+            if key == "" or value == "":
+                pass
+            else:
+                self.doc.update({key: value})
+
+    def create_UID(self):
+        doc_hash = hashlib.sha256(str(self.doc).encode())
+        hex_hash = doc_hash.hexdigest()
+        str_hash = str(hex_hash)
+        self.doc.update({"_id": str_hash})
 
     def on_discard(self, event):
         dialog = wx.MessageDialog(

@@ -30,6 +30,8 @@ class BaseFrame(wx.Frame):
                 self.get_pw()
             else:
                 self.authenticated = True
+                fernet_obj = db_ops.Fernet_obj(self.fernet)
+                db_ops.db.set_fernet(fernet_obj)
         self.CreateStatusBar()
         font = self.GetFont()
         font.SetPointSize(11)
@@ -47,8 +49,8 @@ class BaseFrame(wx.Frame):
             | flnb.FNB_DEFAULT_STYLE,
         )
         self.notebook.SetBackgroundColour(dark_grey)
-        first_panel = login.CreateLogin(self.notebook, self.fernet)
-        second_panel = ListPanel(self.notebook, self.fernet)
+        first_panel = login.CreateLogin(self.notebook)
+        second_panel = ListPanel(self.notebook)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
 
@@ -59,7 +61,7 @@ class BaseFrame(wx.Frame):
 
     def refresh(self):
         self.notebook.DeletePage(1)
-        new_list_panel = ListPanel(self.notebook, self.fernet)
+        new_list_panel = ListPanel(self.notebook)
         self.notebook.AddPage(new_list_panel, "Logins", False)
 
     def get_pw(self):
@@ -69,10 +71,9 @@ class BaseFrame(wx.Frame):
         res = dialog.ShowModal()
         if res == 5100:
             password = dialog.Value
-            salt = db_ops.verify_password(password)
-            self.fernet = db_ops.Fernet_obj(salt, password)
+            self.fernet = db_ops.verify_password(password)
             dialog.Destroy()
-            if salt:
+            if self.fernet:
                 return True
             else:
                 return False
@@ -81,12 +82,10 @@ class BaseFrame(wx.Frame):
 
 
 class ListPanel(wx.Panel):
-    def __init__(self, parent, fernet=None):
+    def __init__(self, parent):
         super().__init__(parent)
-        if fernet:
-            self.fernet = fernet
         self.SetBackgroundColour(dark_grey)
-        choices = db_ops.db.get_logins_list(self.fernet)
+        choices = db_ops.db.get_logins_list()
         self.choices = sorted(choices)
         self.list_box = wx.ListBox(
             self,
@@ -155,8 +154,7 @@ class ListPanel(wx.Panel):
             self.view_panel.to_readonly()
         uID = db_ops.db.get_doc_id(string)
         doc = db_ops.db.get_doc_by_id(uID)
-        decrypted_doc = self.fernet.decrypt_individual(doc)
-        self.view_panel.show_data(decrypted_doc)
+        self.view_panel.show_data(doc)
         self.SendSizeEvent()
         self.view_panel.Thaw()
 

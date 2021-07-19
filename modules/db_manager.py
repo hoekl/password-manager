@@ -20,6 +20,9 @@ class DataBase:
         else:
             print("Server is not available")
 
+    def set_fernet(self, fernet):
+        self.fernet = fernet
+
     def create_db(self, db_name):
         if server.up() == True:
             try:
@@ -29,9 +32,9 @@ class DataBase:
         else:
             print("Server is not available")
 
-    def get_logins_list(self, fernet):
+    def get_logins_list(self):
         res = self.query_all()
-        decrypted_docs = fernet.decrypt_initial(res)
+        decrypted_docs = self.fernet.decrypt_initial(res)
         self.format_query_response(decrypted_docs)
         choices_list = list(self.id_dict.keys())
 
@@ -52,7 +55,8 @@ class DataBase:
         return uID
 
     def get_doc_by_id(self, uID):
-        doc = self.db.get(uID, rev=None, revs_info=False, conflicts=False)
+        encrypted_doc = self.db.get(uID, rev=None, revs_info=False, conflicts=False)
+        doc = self.fernet.decrypt_individual(encrypted_doc)
         pp.pprint(doc)
 
         return doc
@@ -64,7 +68,8 @@ class DataBase:
         self.id_dict = link_dict
 
     def put(self, doc):
-        self.db.put(doc)
+        encrypted_doc = self.fernet.encrypt_individual(doc)
+        self.db.put(encrypted_doc)
 
     def delete(self, doc):
         self.db.delete(doc)
@@ -76,10 +81,9 @@ class DataBase:
             print(traceback.print_exc())
 
 
-class Fernet_obj:
-    def __init__(self, salt, password) -> crypto.Fernet:
-        cryptokey = crypto.get_key(salt, password)
-        self.fernet = crypto.Fernet(cryptokey)
+class Fernet_obj():
+    def __init__(self, fernet) -> crypto.Fernet:
+        self.fernet = fernet
 
     def decrypt_initial(self, res):
         docs = {"doc_array": []}
@@ -114,11 +118,14 @@ class Fernet_obj:
     def encrypt_individual(self, doc):
         encrypted_doc = {}
         for key, value in doc.items():
-            e_key = self.fernet.encrypt(key.encode())
-            e_value = self.fernet.encrypt(value.encode())
-            strkey = e_key.decode()
-            strvalue = e_value.decode()
-            encrypted_doc.update({strkey: strvalue})
+            if key == "_id" or key == "_rev":
+                encrypted_doc.update({key:value})
+            else:
+                e_key = self.fernet.encrypt(key.encode())
+                e_value = self.fernet.encrypt(value.encode())
+                strkey = e_key.decode()
+                strvalue = e_value.decode()
+                encrypted_doc.update({strkey:strvalue})
 
         return encrypted_doc
 
@@ -127,12 +134,12 @@ class VerifyLogin(DataBase):
     def __init__(self, db_name) -> couchdb2.Database:
         super().__init__(db_name)
 
-    def verify(self, salt, password):
+    def verify(self, key_manager):
         res = self.query_all()
         for doc in res["docs"]:
             to_verify = doc["verify"]
         try:
-            crypto.decrypt(salt, password, to_verify)
+            key_manager.decrypt(to_verify)
             return True
         except Exception:
             print("Invalid password")
@@ -142,7 +149,6 @@ class VerifyLogin(DataBase):
             "verify": "gAAAAABg8YmgpdMUAEGvKjaKcDLZJmzLkHCxTJkyexDeB_FYLS7lGHpmyQlYj51UPsWMo8iEnLO1Nmla1oRLJA-6ixbEu7jQii3Jr-SsMVzG9mv_P-ddU8A="
         }
         self.put(v_doc)
-
 
 class LoginData:
     def __init__(self, doc=None):
@@ -156,19 +162,16 @@ class LoginData:
             except:
                 pass
 
-
 db = DataBase("encrypted_mock_data")
-
 
 def verify_password(password):
     db = VerifyLogin("verification")
-    salt = crypto.read_salt()
-    if db.verify(salt, password) == True:
+    key_manager = crypto.CryptoKeyManager(password)
+    if db.verify(key_manager) == True:
         print("Password correct")
-        return salt
+        return key_manager.fernet
     else:
         return False
-
 
 if __name__ == "__main__":
     pass

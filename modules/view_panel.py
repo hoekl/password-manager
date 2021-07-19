@@ -290,7 +290,7 @@ class ViewPanel(wx.Panel):
             self.mng_remove_btns()
 
     def save_edits(self, event):
-        new_doc = {}
+        new_doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             key = txtbox.GetName()
@@ -299,24 +299,20 @@ class ViewPanel(wx.Panel):
                 pass
             else:
                 new_doc.update({key: value})
-            txtbox.SetEditable(False)
 
-        encrypted_doc = self.Parent.fernet.encrypt_individual(new_doc)
-        encrypted_doc.update({"_id": self.current_dataobj.id})
-        encrypted_doc.update({"_rev": self.current_dataobj.rev})
+        db_ops.db.put(new_doc)
         self.hide_pw(event)
         self.btn_save.Hide()
         self.btn_edit.Show()
         self.btn_add_field.Hide()
         self.btn_discard_edits.Hide()
         self.bounding_sizer.Layout()
-        db_ops.db.put(encrypted_doc)
         self.Freeze()
         self.convert_txtbox()
         self.Parent.on_select_item()
         self.Layout()
         self.Thaw()
-        pp.pprint(encrypted_doc)
+        pp.pprint(new_doc)
 
     def convert_txtbox(self):
         self.Freeze()
