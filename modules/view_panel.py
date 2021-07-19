@@ -351,7 +351,6 @@ class ViewPanel(wx.Panel):
         self.btn_edit.Show()
         self.btn_add_field.Hide()
         self.btn_discard_edits.Hide()
-        # self.bounding_sizer.Layout()
         self.Layout()
         self.Thaw()
         self.Parent.on_select_item()
@@ -441,9 +440,7 @@ class ViewPanel(wx.Panel):
             item_index = self.Parent.list_box.GetSelection()
             self.Parent.list_box.Delete(item_index)
             self.Parent.list_box.SetSelection(item_index)
-            self.Parent.on_select_item(
-                None  # passing None since function requires event
-            )  # to be passed but event is not needed
+            self.Parent.on_select_item()
             self.Parent.Update()
 
     def to_readonly(self):
