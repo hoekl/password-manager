@@ -6,13 +6,8 @@ import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
 
-
 dark_grey = wx.Colour(38, 38, 38)
 off_white = wx.Colour(235, 235, 235)
-light_grey = wx.Colour(55, 55, 55)
-grey_btn = wx.Colour(69, 69, 69)
-edit_colour = wx.Colour(63, 63, 63)
-
 
 class ViewPanel(wx.Panel):
     def __init__(self, *agrs, **kw):

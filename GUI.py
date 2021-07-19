@@ -7,6 +7,7 @@ import wx.lib.agw.flatnotebook as flnb
 from modules import login_creator as login
 from modules import db_manager as db_ops
 from modules import view_panel as vp
+from modules import custom_widgets as cw
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -94,15 +95,12 @@ class ListPanel(wx.Panel):
             style=wx.LB_SINGLE | wx.BORDER_NONE,
         )
 
-        self.searchbox = wx.TextCtrl(
+        self.searchbox = cw.TextCtrl(
             self, value="\U0001F50E Search...", style=wx.BORDER_SIMPLE
         )
-        self.searchbox.SetBackgroundColour(light_grey)
-        self.searchbox.SetForegroundColour(off_white)
         self.searchbox.Bind(wx.EVT_KEY_UP, self.search)
         self.searchbox.Bind(wx.EVT_SET_FOCUS, self.clear_search)
         self.searchbox.Bind(wx.EVT_KILL_FOCUS, self.set_search)
-        self.list_box.SetBackgroundColour(dark_grey)
         self.list_box.SetForegroundColour(off_white)
         self.list_box.SetBackgroundColour(dark_grey)
         self.view_panel = vp.ViewPanel(self)
@@ -131,7 +129,11 @@ class ListPanel(wx.Panel):
 
     def clear_search(self, event):
         event.Skip()
-        self.selected_item = self.list_box.GetSelection()
+        selected_index = self.list_box.GetSelection()
+        try:
+            self.selected_string = self.list_box.GetString(selected_index)
+        except Exception:
+            pass
         self.searchbox.Clear()
         send_backspace = wx.UIActionSimulator()
         send_backspace.Char(8)
@@ -139,7 +141,7 @@ class ListPanel(wx.Panel):
     def set_search(self, event):
         event.Skip()
         try:
-            self.list_box.SetSelection(self.selected_item)
+            self.list_box.SetStringSelection(self.selected_string)
         except Exception:
             pass
         self.searchbox.SetValue("\U0001F50E Search...")
