@@ -47,9 +47,7 @@ class BaseFrame(wx.Frame):
         )
         self.notebook.SetBackgroundColour(dark_grey)
         first_panel = login.CreateLogin(self.notebook, self.fernet)
-        first_panel.SetBackgroundColour(dark_grey)
         second_panel = ListPanel(self.notebook, self.fernet)
-        second_panel.SetBackgroundColour(dark_grey)
         self.notebook.AddPage(first_panel, "New Login", False)
         self.notebook.AddPage(second_panel, "Logins", True)
 

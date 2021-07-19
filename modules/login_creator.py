@@ -17,29 +17,11 @@ class CreateLogin(wx.Panel):
         super(CreateLogin, self).__init__(parent)
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.new_login_pnl = NewLogin(self, fernet)
-        self.launch_dialog_btn = cw.Button(self, label="Generate Password")
-        self.launch_dialog_btn.Bind(wx.EVT_BUTTON, self.on_generate)
         self.main_sizer.Add(self.new_login_pnl, 1, flag=wx.ALIGN_CENTER, border=50)
-        self.main_sizer.Add(
-            self.launch_dialog_btn, wx.SizerFlags().Centre().Border(wx.ALL, 5)
-        )
         self.SetSizer(self.main_sizer)
-
-    def on_generate(self, event):
-        dialog = PWGenWindow(self, title="Generate new password")
-        res = dialog.ShowModal()
-        if res == 5100:
-            password = dialog.txt_ctrl.Value
-            self.new_login_pnl.autofill(password)
-        else:
-            pass
-        dialog.Destroy()
-
 
     def on_refresh(self):
         self.new_login_pnl = NewLogin(self)
-        self.new_login_pnl.SetBackgroundColour(dark_grey)
-        self.new_login_pnl.SetForegroundColour(off_white)
         sizer_items = self.main_sizer.GetChildren()
         sizer_item = sizer_items[0]
         old_panel = sizer_item.GetWindow()
@@ -58,6 +40,8 @@ class NewLogin(wx.Panel):
         self.number_of_fields = 0
         self.num_rmv_btns = 0
         self.doc = {}
+        self.SetBackgroundColour(dark_grey)
+        self.SetForegroundColour(off_white)
         self.label_sizer = wx.BoxSizer(wx.VERTICAL)
         self.txtbox_sizer = wx.BoxSizer(wx.VERTICAL)
         self.remove_btn_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -74,6 +58,11 @@ class NewLogin(wx.Panel):
         self.btn_add_field = cw.Button(self, label="Add field")
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.add_custom_field)
         self.button_sizer.Add(self.btn_add_field, 0, wx.ALIGN_CENTER, border=50)
+        self.button_sizer.Add(25, 50)
+
+        self.btn_pw_generator  = cw.Button(self, label="Generate Password")
+        self.btn_pw_generator.Bind(wx.EVT_BUTTON, self.on_generate)
+        self.button_sizer.Add(self.btn_pw_generator, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer.Add(25, 50)
 
         self.btn_discard = cw.Button(self, label="Discard")
@@ -96,9 +85,11 @@ class NewLogin(wx.Panel):
         self.lbl_and_box_sizer.Add(
             self.label_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
         )
+        self.lbl_and_box_sizer.Add(25, 25)
         self.lbl_and_box_sizer.Add(
             self.txtbox_sizer, 1, wx.EXPAND | wx.ALIGN_TOP, border=10
         )
+        self.lbl_and_box_sizer.Add(25, 25)
         self.lbl_and_box_sizer.Add(
             self.remove_btn_sizer,
             1,
@@ -107,6 +98,7 @@ class NewLogin(wx.Panel):
         self.lbl_and_box_sizer.AddStretchSpacer()
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
+        self.bounding_sizer.Add(50, 50)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTER)
 
         self.panel_sizer.AddStretchSpacer()
@@ -122,10 +114,9 @@ class NewLogin(wx.Panel):
             label_box = cw.TextCtrl(self, name=str(self.number_of_fields))
             txtbox = cw.TextCtrl(self, name=str(self.number_of_fields))
 
-        label_box.set_size()
-        txtbox.set_size()
         label_box.make_editable()
         txtbox.make_editable()
+        txtbox.set_size()
         label_box.Bind(wx.EVT_KILL_FOCUS, self.txtctrl_on_focusloss)
         self.label_sizer.Add(
             label_box,
@@ -153,7 +144,7 @@ class NewLogin(wx.Panel):
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
-            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.ALL | wx.ALIGN_LEFT,
             border=10,
         )
         self.num_rmv_btns += 1
@@ -193,13 +184,23 @@ class NewLogin(wx.Panel):
         self.Layout()
         self.Thaw()
 
+    def on_generate(self, event):
+        dialog = PWGenWindow(self, title="Generate new password")
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.txt_ctrl.Value
+            self.autofill(password)
+        else:
+            pass
+        dialog.Destroy()
+
+
     def txtctrl_on_focusloss(self, event):
         event.Skip()
         evt_source = event.EventObject
         label = evt_source.Name
         value = evt_source.Value
-        children = self.txtbox_sizer.GetChildren()
-        for sizer_child in children:
+        for sizer_child in self.txtbox_sizer.__iter__():
             txtbox = sizer_child.GetWindow()
             if txtbox.GetName() == label:
                 txtbox.SetName(value)

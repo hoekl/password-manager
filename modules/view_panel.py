@@ -107,7 +107,7 @@ class ViewPanel(wx.Panel):
             wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
             border=50,
         )
-
+        self.bounding_sizer.Add(50, 50)
         self.bounding_sizer.Add(
             self.group_button_sizer,
             0,
@@ -178,7 +178,7 @@ class ViewPanel(wx.Panel):
         self.remove_btn_sizer.Add(
             rmv_button,
             1,
-            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.ALL | wx.ALIGN_LEFT,
             border=10,
         )
         self.num_rmv_btns += 1
