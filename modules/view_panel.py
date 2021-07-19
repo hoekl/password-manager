@@ -115,77 +115,6 @@ class ViewPanel(wx.Panel):
 
         self.SetSizer(self.panel_sizer)
 
-    def add_field(self):
-        self.number_of_fields += 1
-        new_label = cw.StaticText(self)
-        new_field = cw.TextCtrl(self)
-        new_field.set_size()
-        self.label_sizer.Add(
-            new_label,
-            1,
-            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-            border=10,
-        )
-        self.txtbox_sizer.Add(
-            new_field,
-            1,
-            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-            border=10,
-        )
-
-    def remove_field(self):
-        if self.label_sizer.GetChildren() and self.txtbox_sizer.GetChildren():
-            sizer_item = self.label_sizer.GetItem(self.number_of_fields - 1)
-            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
-            label = sizer_item.GetWindow()
-            txtbox = sizer_item2.GetWindow()
-            self.txtbox_sizer.Hide(label)
-            self.txtbox_sizer.Hide(txtbox)
-            label.Destroy()
-            txtbox.Destroy()
-            self.number_of_fields -= 1
-
-    def user_add_field(self, event):
-        self.number_of_fields += 1
-        new_label = cw.TextCtrl(self)
-        new_field = cw.TextCtrl(self)
-        new_label.make_editable()
-        new_field.make_editable()
-        new_label.Bind(wx.EVT_KILL_FOCUS, self.set_field_name, new_label)
-        self.label_sizer.Add(
-            new_label,
-            1,
-            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-            border=10,
-        )
-        self.txtbox_sizer.Add(
-            new_field,
-            1,
-            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
-            border=10,
-        )
-        self.add_remove_btn()
-        self.Parent.SendSizeEvent()
-
-    def add_remove_btn(self):
-        rmv_button = cw.Button(self, label="Remove", name=str(self.num_rmv_btns))
-        rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
-        self.remove_btn_sizer.Add(
-            rmv_button,
-            1,
-            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.ALL | wx.ALIGN_LEFT,
-            border=10,
-        )
-        self.num_rmv_btns += 1
-
-    def del_remove_btn(self):
-        if self.remove_btn_sizer.GetChildren():
-            sizer_item = self.remove_btn_sizer.GetItem(self.num_rmv_btns - 1)
-            btn = sizer_item.GetWindow()
-            self.remove_btn_sizer.Hide(btn)
-            btn.Destroy()
-            self.num_rmv_btns -= 1
-
     def show_data(self, doc):
         self.btn_hide_pw.Hide()
         self.btn_copy_pw.Hide()
@@ -218,16 +147,6 @@ class ViewPanel(wx.Panel):
             self.remove_field()
             self.create_view(fields_needed, data_dict)
 
-    def remove_pw_field(self):
-        for sizer_item in self.txtbox_sizer.__iter__():
-            ctrl = sizer_item.GetWindow()
-            if ctrl.GetName() == "password":
-                self.txtbox_sizer.Hide(ctrl)
-                temp_ctrl = cw.TextCtrl(self)
-                temp_ctrl.set_size()
-                self.txtbox_sizer.Replace(ctrl, temp_ctrl)
-                ctrl.Destroy()
-
     def add_data_to_view(self, data_dict):
         index = 0
         dict_keys = list(data_dict.keys())
@@ -248,6 +167,87 @@ class ViewPanel(wx.Panel):
 
         self.set_style_pw()
 
+    def add_field(self):
+        self.number_of_fields += 1
+        new_label = cw.StaticText(self)
+        new_field = cw.TextCtrl(self)
+        new_field.set_size()
+        self.label_sizer.Add(
+            new_label,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.txtbox_sizer.Add(
+            new_field,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+
+    def remove_field(self):
+        if self.label_sizer.GetChildren() and self.txtbox_sizer.GetChildren():
+            sizer_item = self.label_sizer.GetItem(self.number_of_fields - 1)
+            sizer_item2 = self.txtbox_sizer.GetItem(self.number_of_fields - 1)
+            label = sizer_item.GetWindow()
+            txtbox = sizer_item2.GetWindow()
+            self.txtbox_sizer.Hide(label)
+            self.txtbox_sizer.Hide(txtbox)
+            label.Destroy()
+            txtbox.Destroy()
+            self.number_of_fields -= 1
+
+    def mng_remove_btns(self):
+        if self.num_rmv_btns == self.number_of_fields:
+            return
+        if self.num_rmv_btns < self.number_of_fields:
+            self.add_remove_btn()
+            self.mng_remove_btns()
+        if self.num_rmv_btns > self.number_of_fields:
+            self.del_remove_btn()
+            self.mng_remove_btns()
+
+    def add_remove_btn(self):
+        rmv_button = cw.Button(self, label="Remove", name=str(self.num_rmv_btns))
+        rmv_button.Bind(wx.EVT_BUTTON, self.delete_field)
+        self.remove_btn_sizer.Add(
+            rmv_button,
+            1,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.num_rmv_btns += 1
+
+    def del_remove_btn(self):
+        if self.remove_btn_sizer.GetChildren():
+            sizer_item = self.remove_btn_sizer.GetItem(self.num_rmv_btns - 1)
+            btn = sizer_item.GetWindow()
+            self.remove_btn_sizer.Hide(btn)
+            btn.Destroy()
+            self.num_rmv_btns -= 1
+
+    def user_add_field(self, event):
+        self.number_of_fields += 1
+        new_label = cw.TextCtrl(self)
+        new_field = cw.TextCtrl(self)
+        new_label.make_editable()
+        new_field.make_editable()
+        new_label.Bind(wx.EVT_KILL_FOCUS, self.set_field_name, new_label)
+        self.label_sizer.Add(
+            new_label,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.txtbox_sizer.Add(
+            new_field,
+            1,
+            flag=wx.EXPAND | wx.ALL | wx.ALIGN_LEFT,
+            border=10,
+        )
+        self.add_remove_btn()
+        self.Parent.SendSizeEvent()
+
     def set_style_pw(self):
         for item in self.txtbox_sizer.__iter__():
             ctrl = item.GetWindow()
@@ -261,16 +261,59 @@ class ViewPanel(wx.Panel):
                 self.btn_copy_pw.Show()
                 break
 
-    def on_edit(self, event):
-        self.is_edited = True
+    def show_pw(self, *event):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            ctrl = sizer_item.GetWindow()
+            lbl = ctrl.GetName()
+            if lbl == "password":
+                self.Freeze()
+                pw_ctrl = cw.TextCtrl(
+                    self, value=self.current_dataobj.password, name="password"
+                )
+                pw_ctrl.set_size()
+                self.txtbox_sizer.Replace(ctrl, pw_ctrl)
+                ctrl.Hide()
+                ctrl.Destroy()
+                self.btn_show_pw.Hide()
+                self.btn_hide_pw.Show()
+                self.Parent.Refresh()
+                self.Parent.SendSizeEvent()
+                self.Thaw()
+                break
+
+    def hide_pw(self, *event):
         self.Freeze()
-        self.show_pw(event)
-        self.btn_show_pw.Hide()
+        self.set_style_pw()
+        self.btn_hide_pw.Hide()
+        self.btn_show_pw.Show()
+        self.Parent.Refresh()
+        self.Parent.SendSizeEvent()
+        self.Thaw()
+
+    def copy_pw(self, event):
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(self.current_dataobj.password))
+            wx.TheClipboard.Close()
+
+    def remove_pw_field(self):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            ctrl = sizer_item.GetWindow()
+            if ctrl.GetName() == "password":
+                self.txtbox_sizer.Hide(ctrl)
+                temp_ctrl = cw.TextCtrl(self)
+                temp_ctrl.set_size()
+                self.txtbox_sizer.Replace(ctrl, temp_ctrl)
+                ctrl.Destroy()
+
+    def on_edit(self, event):
+        self.Freeze()
+        self.is_edited = True
+        self.convert_statictxt()
+        self.show_pw()
         self.btn_hide_pw.Hide()
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
             txtbox.make_editable()
-        self.convert_statictxt()
         self.lbl_and_box_sizer.Show(self.remove_btn_sizer)
         self.btn_edit.Hide()
         self.btn_save.Show()
@@ -279,17 +322,18 @@ class ViewPanel(wx.Panel):
         self.Layout()
         self.Thaw()
 
-    def mng_remove_btns(self):
-        if self.num_rmv_btns == self.number_of_fields:
-            return
-        if self.num_rmv_btns < self.number_of_fields:
-            self.add_remove_btn()
-            self.mng_remove_btns()
-        if self.num_rmv_btns > self.number_of_fields:
-            self.del_remove_btn()
-            self.mng_remove_btns()
+    def discard_edits(self, event):
+        self.Freeze()
+        self.Parent.on_select_item()
+        self.btn_discard_edits.Hide()
+        self.btn_save.Hide()
+        self.btn_add_field.Hide()
+        self.btn_edit.Show()
+        self.Layout()
+        self.Thaw()
 
     def save_edits(self, event):
+        self.Freeze()
         new_doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
         for sizer_item in self.txtbox_sizer.__iter__():
             txtbox = sizer_item.GetWindow()
@@ -301,17 +345,16 @@ class ViewPanel(wx.Panel):
                 new_doc.update({key: value})
 
         db_ops.db.put(new_doc)
-        self.hide_pw(event)
+        self.convert_txtbox()
+        self.hide_pw()
         self.btn_save.Hide()
         self.btn_edit.Show()
         self.btn_add_field.Hide()
         self.btn_discard_edits.Hide()
-        self.bounding_sizer.Layout()
-        self.Freeze()
-        self.convert_txtbox()
-        self.Parent.on_select_item()
+        # self.bounding_sizer.Layout()
         self.Layout()
         self.Thaw()
+        self.Parent.on_select_item()
         pp.pprint(new_doc)
 
     def convert_txtbox(self):
@@ -342,56 +385,6 @@ class ViewPanel(wx.Panel):
 
         self.Parent.SendSizeEvent()
         self.Thaw()
-
-    def show_pw(self, event):
-        for sizer_item in self.txtbox_sizer.__iter__():
-            ctrl = sizer_item.GetWindow()
-            lbl = ctrl.GetName()
-            if lbl == "password":
-                self.Freeze()
-                pw_ctrl = cw.TextCtrl(
-                    self, value=self.current_dataobj.password, name="password"
-                )
-                pw_ctrl.set_size()
-                self.txtbox_sizer.Replace(ctrl, pw_ctrl)
-                ctrl.Hide()
-                ctrl.Destroy()
-                self.btn_show_pw.Hide()
-                self.btn_hide_pw.Show()
-                self.Parent.Refresh()
-                self.Parent.SendSizeEvent()
-                self.Thaw()
-                break
-
-    def hide_pw(self, event):
-        self.Freeze()
-        self.set_style_pw()
-        self.btn_hide_pw.Hide()
-        self.btn_show_pw.Show()
-        self.Parent.Refresh()
-        self.Parent.SendSizeEvent()
-        self.Thaw()
-
-    def copy_pw(self, event):
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.SetData(wx.TextDataObject(self.current_dataobj.password))
-            wx.TheClipboard.Close()
-
-    def discard_edits(self, event):
-        self.Freeze()
-        self.Parent.on_select_item()
-        self.btn_discard_edits.Hide()
-        self.btn_save.Hide()
-        self.btn_add_field.Hide()
-        self.btn_edit.Show()
-        self.Layout()
-        self.Thaw()
-
-    def to_readonly(self):
-        for sizer_item in self.txtbox_sizer.__iter__():
-            txtbox = sizer_item.GetWindow()
-            txtbox.make_readonly()
-        self.is_edited = False
 
     def set_field_name(self, event):
         event.Skip()
@@ -453,6 +446,11 @@ class ViewPanel(wx.Panel):
             )  # to be passed but event is not needed
             self.Parent.Update()
 
+    def to_readonly(self):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            txtbox = sizer_item.GetWindow()
+            txtbox.make_readonly()
+        self.is_edited = False
 
 if __name__ == "__main__":
     pass
