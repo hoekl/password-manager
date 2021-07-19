@@ -15,10 +15,6 @@ class Button(wx.Button):
         if kw:
             self.SetName(kw["name"])
 
-    def setName(self, name):
-        self.SetName(name)
-
-
 class TextCtrl(wx.TextCtrl):
     def __init__(self, parent, style=wx.TE_READONLY | wx.BORDER_SIMPLE, **kw):
         super().__init__(parent, style=style, **kw)
