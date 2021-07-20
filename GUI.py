@@ -3,11 +3,11 @@ import pprint
 import ctypes
 import wx.lib.agw.flatnotebook as flnb
 
-
 from modules import login_creator as login
 from modules import db_manager as db_ops
 from modules import view_panel as vp
 from modules import custom_widgets as cw
+from modules import encryption_handler as crypto
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -24,24 +24,63 @@ light_grey = wx.Colour(55, 55, 55)
 class LoginScreen(wx.Frame):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        db = db_ops.DataBase("encrypted_mock_data")
+        self.db = db_ops.DataBase("encrypted_mock_data")
         self.verify_db = db_ops.VerifyLogin("verification")
         self.authenticated = False
 
-        if db.is_new == True:
-            password = self.create_password()
-            self.verify_db.setup(password)
+        if self.db.is_new == True:
+            if self.existing_db_check() == False:
+                password = self.create_password()
+                key_manager = crypto.CryptoKeyManager(password)
+                self.verify_db.setup(key_manager)
+            else:
+                key_manager = self.import_existing()
+                self.verify_db.setup(key_manager)
         while self.authenticated == False:
             if self.get_pw() == False:
                 self.get_pw()
 
         fernet_obj = db_ops.Fernet_obj(self.fernet)
-        db.set_fernet(fernet_obj)
-        frm = BaseFrame(None, title="   Password Manager", db=db)
+        self.db.set_fernet(fernet_obj)
+        frm = BaseFrame(None, title="   Password Manager", db=self.db)
         frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
         frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
         frm.Show()
         self.Destroy()
+
+    def existing_db_check(self):
+        dialog = wx.MessageDialog(self, "Would you like to import an existing database?", "Import existing?", style=wx.YES_NO | wx.CANCEL)
+        res = dialog.ShowModal()
+        if res == wx.ID_YES:
+            return True
+        elif res == wx.ID_NO:
+            return False
+        elif res == wx.ID_CANCEL:
+            wx.Exit()
+
+    def import_existing(self):
+        with wx.FileDialog(self, "Choose file to import", wildcard="*.tar") as fileDialog:
+            fileDialog.SetMessage("Choose file to import")
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return
+            tar_path = fileDialog.GetPath()
+        with wx.FileDialog(self, "Choose salt location", wildcard="*.key") as fileDialog:
+            fileDialog.SetMessage("Choose salt location")
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return
+            salt_path = fileDialog.GetPath()
+
+        dialog = wx.PasswordEntryDialog(
+            self, message="Enter password for this db", style=wx.OK | wx.CANCEL
+        )
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.Value
+        dialog.Destroy()
+        key_manager = crypto.CryptoKeyManager(password)
+        key_manager.import_salt(salt_path, password)
+        self.db.import_db(tar_path)
+        return key_manager
 
     def get_pw(self):
         dialog = wx.PasswordEntryDialog(
@@ -72,22 +111,21 @@ class LoginScreen(wx.Frame):
         if res == 5101:
             wx.Exit()
 
-    def setup_verify_db(self, password):
-        verify = db_ops.VerifyLogin("verification")
-        verify.setup(password)
-
 
 class BaseFrame(wx.Frame):
     def __init__(self, parent, title=None, db=None):
         super(BaseFrame, self).__init__(parent, title=title)
+        self.db = db
         self.CreateStatusBar()
+        self.create_menu_bar()
         font = self.GetFont()
         font.SetPointSize(11)
         self.SetFont(font)
         self.StatusBar.SetBackgroundColour(light_grey)
+        self.StatusBar.SetForegroundColour(off_white)
         self.SetBackgroundColour(dark_grey)
         self.SetForegroundColour(off_white)
-        self.base_panel = cw.DBpanel(self, db)
+        self.base_panel = cw.DBpanel(self, self.db)
 
         self.notebook = flnb.FlatNotebook(
             self.base_panel,
@@ -111,6 +149,23 @@ class BaseFrame(wx.Frame):
         self.notebook.DeletePage(1)
         new_list_panel = ListPanel(self.notebook)
         self.notebook.AddPage(new_list_panel, "Logins", False)
+
+    def create_menu_bar(self):
+        db_menu = wx.Menu()
+        db_dump = db_menu.Append(-1, "&Export Database \tCtrl-E", "Download the full database in .tar format")
+        menu_bar = wx.MenuBar()
+        menu_bar.Append(db_menu, "Database")
+
+        self.SetMenuBar(menu_bar)
+        self.Bind(wx.EVT_MENU, self.dump_db, db_dump)
+
+    def dump_db(self, event):
+        with wx.DirDialog(self, "Choose save location") as fileDialog:
+            fileDialog.SetMessage("Choose save location")
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return
+            path_name = fileDialog.GetPath()
+        self.db.dump(path_name)
 
 
 class ListPanel(wx.Panel):

@@ -1,7 +1,8 @@
 import pprint
 import traceback
 import couchdb2
-import wx
+import os
+from datetime import datetime
 from modules.configuration import config
 from modules import encryption_handler as crypto
 
@@ -67,6 +68,18 @@ class DataBase:
 
     def delete(self, doc):
         self.db.delete(doc)
+
+    def dump(self, path):
+        dt_object = datetime.now()
+        timestamp = dt_object.strftime("%d-%b-%Y-%H-%M")
+        dir_path = os.path.join(path + os.sep + "database_dump" + os.sep + timestamp)
+        file_path = os.path.join(dir_path, "db_export.tar")
+        os.makedirs(dir_path)
+        self.db.dump(file_path)
+
+    def import_db(self, path):
+        self.db.undump(path)
+
 
     def check_is_db(self):
         try:
@@ -137,6 +150,7 @@ class VerifyLogin(DataBase):
             return False
 
     def verify(self, key_manager):
+        print(key_manager.salt)
         res = self.query_all()
         for doc in res["docs"]:
             to_verify = doc["verify"]
@@ -146,8 +160,7 @@ class VerifyLogin(DataBase):
         except Exception:
             print("Invalid password")
 
-    def setup(self, password):
-        keymanager = crypto.CryptoKeyManager(password)
+    def setup(self, keymanager):
         crypto_message = keymanager.encrypt()
         v_doc = {"verify": crypto_message}
         self.db.put(v_doc)

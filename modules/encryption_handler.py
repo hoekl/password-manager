@@ -12,11 +12,12 @@ class CryptoKeyManager:
     def __init__(self, password):
         self.salt_path = self.get_path()
         try:
-            self.salt = self.read_salt()
+            self.salt = self.read_salt(self.salt_path)
+            self.key = self.get_key(password)
+            self.fernet = Fernet(self.key)
         except Exception:
-            self.salt = self.write_salt()
-        self.key = self.get_key(password)
-        self.fernet = Fernet(self.key)
+                pass
+
 
     def get_path(self):
         data_dir = os.path.join(
@@ -24,13 +25,21 @@ class CryptoKeyManager:
         )
         return data_dir
 
-    def read_salt(self):
-        with open(self.salt_path, "rb") as f:
+    def new_salt(self):
+        return secrets.token_bytes(32)
+
+    def import_salt(self, path_to_salt, password):
+        self.salt = self.read_salt(path_to_salt)
+        self.write_salt(self.salt)
+        self.key = self.get_key(password)
+        self.fernet = Fernet(self.key)
+
+    def read_salt(self, path):
+        with open(path, "rb") as f:
             salt = f.read()
         return salt
 
-    def write_salt(self):
-        salt = secrets.token_bytes(32)
+    def write_salt(self, salt):
         with open(self.salt_path, "wb") as f:
             f.write(salt)
         return salt
