@@ -344,7 +344,7 @@ class ViewPanel(wx.Panel):
             else:
                 new_doc.update({key: value})
 
-        db_ops.db.put(new_doc)
+        self.GrandParent.db.put(new_doc)
         self.convert_txtbox()
         self.hide_pw()
         self.btn_save.Hide()
@@ -434,7 +434,7 @@ class ViewPanel(wx.Panel):
         confirm_dialog.Destroy()
         if choice_response == 5100:  # 5100 is response code for OK
             doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
-            db_ops.db.delete(doc)
+            self.GrandParent.db.delete(doc)
 
             # Get and display next item from list
             item_index = self.Parent.list_box.GetSelection()

@@ -11,7 +11,10 @@ base_path = os.path.abspath(os.path.dirname(__file__))
 class CryptoKeyManager:
     def __init__(self, password):
         self.salt_path = self.get_path()
-        self.salt = self.read_salt()
+        try:
+            self.salt = self.read_salt()
+        except Exception:
+            self.salt = self.write_salt()
         self.key = self.get_key(password)
         self.fernet = Fernet(self.key)
 
@@ -52,12 +55,10 @@ class CryptoKeyManager:
         )
         return base64.urlsafe_b64encode(kdf.derive(password))
 
-    def encrypt(self, message):
-        # ! Modify to put message in DB
-        f = Fernet(self.key)
-        encrypted = f.encrypt(message.encode())
-        with open("secretmsg.txt", "wb") as file:
-            file.write(encrypted)
+    def encrypt(self):
+        message = "Password verification test"
+        encrypted = self.fernet.encrypt(message.encode())
+        return encrypted.decode()
 
     def decrypt(self, message):
         msg = message.encode()

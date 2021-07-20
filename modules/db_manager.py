@@ -1,6 +1,7 @@
 import pprint
 import traceback
 import couchdb2
+import wx
 from modules.configuration import config
 from modules import encryption_handler as crypto
 
@@ -15,22 +16,15 @@ class DataBase:
                 self.db = server.get(
                     db_name, check=True
                 )  # raises NotFoundError if database doesn't exist
+                self.is_new = False
             except couchdb2.NotFoundError:
-                self.create_db(db_name)
+                self.db = server.create(db_name)
+                self.is_new = True
         else:
             print("Server is not available")
 
     def set_fernet(self, fernet):
         self.fernet = fernet
-
-    def create_db(self, db_name):
-        if server.up() == True:
-            try:
-                self.db = server.create(db_name)
-            except Exception:
-                print(traceback.print_exc())
-        else:
-            print("Server is not available")
 
     def get_logins_list(self):
         res = self.query_all()
@@ -81,7 +75,7 @@ class DataBase:
             print(traceback.print_exc())
 
 
-class Fernet_obj():
+class Fernet_obj:
     def __init__(self, fernet) -> crypto.Fernet:
         self.fernet = fernet
 
@@ -119,13 +113,13 @@ class Fernet_obj():
         encrypted_doc = {}
         for key, value in doc.items():
             if key == "_id" or key == "_rev":
-                encrypted_doc.update({key:value})
+                encrypted_doc.update({key: value})
             else:
                 e_key = self.fernet.encrypt(key.encode())
                 e_value = self.fernet.encrypt(value.encode())
                 strkey = e_key.decode()
                 strvalue = e_value.decode()
-                encrypted_doc.update({strkey:strvalue})
+                encrypted_doc.update({strkey: strvalue})
 
         return encrypted_doc
 
@@ -133,6 +127,14 @@ class Fernet_obj():
 class VerifyLogin(DataBase):
     def __init__(self, db_name) -> couchdb2.Database:
         super().__init__(db_name)
+
+    def verify_password(self, password):
+        key_manager = crypto.CryptoKeyManager(password)
+        if self.verify(key_manager) == True:
+            print("Password correct")
+            return key_manager.fernet
+        else:
+            return False
 
     def verify(self, key_manager):
         res = self.query_all()
@@ -144,11 +146,12 @@ class VerifyLogin(DataBase):
         except Exception:
             print("Invalid password")
 
-    def setup(self):  # ! Modify to accept new string
-        v_doc = {
-            "verify": "gAAAAABg8YmgpdMUAEGvKjaKcDLZJmzLkHCxTJkyexDeB_FYLS7lGHpmyQlYj51UPsWMo8iEnLO1Nmla1oRLJA-6ixbEu7jQii3Jr-SsMVzG9mv_P-ddU8A="
-        }
-        self.put(v_doc)
+    def setup(self, password):
+        keymanager = crypto.CryptoKeyManager(password)
+        crypto_message = keymanager.encrypt()
+        v_doc = {"verify": crypto_message}
+        self.db.put(v_doc)
+
 
 class LoginData:
     def __init__(self, doc=None):
@@ -162,16 +165,6 @@ class LoginData:
             except:
                 pass
 
-db = DataBase("encrypted_mock_data")
-
-def verify_password(password):
-    db = VerifyLogin("verification")
-    key_manager = crypto.CryptoKeyManager(password)
-    if db.verify(key_manager) == True:
-        print("Password correct")
-        return key_manager.fernet
-    else:
-        return False
 
 if __name__ == "__main__":
     pass

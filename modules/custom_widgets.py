@@ -50,6 +50,11 @@ class PasswordCtrl(TextCtrl):
     ):
         super().__init__(parent, value=value, style=style, name=name)
 
+class DBpanel(wx.Panel):
+    def __init__(self, parent, db=None):
+        super().__init__(parent)
+        self.db = db
+
 
 class StaticText(wx.StaticText):
     def __init__(self, parent, **kw):

@@ -216,7 +216,7 @@ class NewLogin(wx.Panel):
         if self.doc.values():
             self.create_UID()
             try:
-                db_ops.db.put(self.doc)
+                self.GrandParent.Parent.db.put(self.doc)
                 self.on_success()
                 self.Parent.Parent.Parent.Parent.refresh()
                 self.Parent.on_refresh()

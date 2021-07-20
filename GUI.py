@@ -21,17 +21,65 @@ off_white = wx.Colour(235, 235, 235)
 light_grey = wx.Colour(55, 55, 55)
 
 
-class BaseFrame(wx.Frame):
+class LoginScreen(wx.Frame):
     def __init__(self, *args, **kw):
-        super(BaseFrame, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
+        db = db_ops.DataBase("encrypted_mock_data")
+        self.verify_db = db_ops.VerifyLogin("verification")
         self.authenticated = False
+
+        if db.is_new == True:
+            password = self.create_password()
+            self.verify_db.setup(password)
         while self.authenticated == False:
             if self.get_pw() == False:
                 self.get_pw()
-            else:
+
+        fernet_obj = db_ops.Fernet_obj(self.fernet)
+        db.set_fernet(fernet_obj)
+        frm = BaseFrame(None, title="   Password Manager", db=db)
+        frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
+        frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
+        frm.Show()
+        self.Destroy()
+
+    def get_pw(self):
+        dialog = wx.PasswordEntryDialog(
+            self, message="Enter your password", style=wx.OK | wx.CANCEL
+        )
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.Value
+            self.fernet = self.verify_db.verify_password(password)
+            dialog.Destroy()
+            if self.fernet:
                 self.authenticated = True
-                fernet_obj = db_ops.Fernet_obj(self.fernet)
-                db_ops.db.set_fernet(fernet_obj)
+                return True
+            else:
+                return False
+        if res == 5101:
+            wx.Exit()
+
+    def create_password(self):
+        dialog = wx.PasswordEntryDialog(
+            self, message="Enter new master password", style=wx.OK | wx.CANCEL
+        )
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.Value
+            dialog.Destroy()
+            return password
+        if res == 5101:
+            wx.Exit()
+
+    def setup_verify_db(self, password):
+        verify = db_ops.VerifyLogin("verification")
+        verify.setup(password)
+
+
+class BaseFrame(wx.Frame):
+    def __init__(self, parent, title=None, db=None):
+        super(BaseFrame, self).__init__(parent, title=title)
         self.CreateStatusBar()
         font = self.GetFont()
         font.SetPointSize(11)
@@ -39,7 +87,7 @@ class BaseFrame(wx.Frame):
         self.StatusBar.SetBackgroundColour(light_grey)
         self.SetBackgroundColour(dark_grey)
         self.SetForegroundColour(off_white)
-        self.base_panel = wx.Panel(self)
+        self.base_panel = cw.DBpanel(self, db)
 
         self.notebook = flnb.FlatNotebook(
             self.base_panel,
@@ -64,28 +112,12 @@ class BaseFrame(wx.Frame):
         new_list_panel = ListPanel(self.notebook)
         self.notebook.AddPage(new_list_panel, "Logins", False)
 
-    def get_pw(self):
-        dialog = wx.PasswordEntryDialog(
-            self, message="Enter your password", style=wx.OK | wx.CANCEL
-        )
-        res = dialog.ShowModal()
-        if res == 5100:
-            password = dialog.Value
-            self.fernet = db_ops.verify_password(password)
-            dialog.Destroy()
-            if self.fernet:
-                return True
-            else:
-                return False
-        if res == 5101:
-            wx.Exit()
-
 
 class ListPanel(wx.Panel):
     def __init__(self, parent):
         super().__init__(parent)
         self.SetBackgroundColour(dark_grey)
-        choices = db_ops.db.get_logins_list()
+        choices = self.GrandParent.db.get_logins_list()
         self.choices = sorted(choices)
         self.list_box = wx.ListBox(
             self,
@@ -152,8 +184,8 @@ class ListPanel(wx.Panel):
         self.view_panel.Freeze()
         if self.view_panel.is_edited == True:
             self.view_panel.to_readonly()
-        uID = db_ops.db.get_doc_id(string)
-        doc = db_ops.db.get_doc_by_id(uID)
+        uID = self.GrandParent.db.get_doc_id(string)
+        doc = self.GrandParent.db.get_doc_by_id(uID)
         self.view_panel.show_data(doc)
         self.SendSizeEvent()
         self.view_panel.Thaw()
@@ -164,8 +196,5 @@ if __name__ == "__main__":
     # frame, show it, and start the event loop.
     app = wx.App()
     app.SetExitOnFrameDelete(True)
-    frm = BaseFrame(None, title="   Password Manager")
-    frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
-    frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
-    frm.Show()
+    screen = LoginScreen(None)
     app.MainLoop()
