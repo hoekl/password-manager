@@ -3,7 +3,7 @@ import string
 from couchdb2 import CouchDB2Exception
 import wx
 import hashlib
-from modules import db_manager as db_ops
+# from modules import db_manager as db_ops
 from modules import custom_widgets as cw
 
 dark_grey = wx.Colour(38, 38, 38)
@@ -347,9 +347,14 @@ class PWGenWindow(wx.Dialog):
 
     def generate_pw(self, event):
         self.set_pw_options(self.choices_box.GetCheckedItems())
-        password = "".join(
-            (secrets.choice(self.source_string) for i in range(self.pw_length))
-        )
+        while True:
+            password = "".join(
+                (secrets.choice(self.source_string) for i in range(self.pw_length))
+            )
+            if (any(char.islower() for char in password)
+                and any(char.isupper() for char in password)
+                and sum(char.isdigit() for char in password) >= 3):
+                break
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
 
