@@ -9,10 +9,17 @@ base_path = os.path.abspath(os.path.dirname(__file__))
 
 
 class CryptoKeyManager:
-    def __init__(self, password):
+    def __init__(self, password, *is_new):
         self.salt_path = self.get_path()
+        if is_new:
+            self.salt = self.new_salt()
+            self.write_salt(self.salt)
         try:
-            self.salt = self.read_salt(self.salt_path)
+            try:
+                self.salt = self.read_salt(self.salt_path)
+            except Exception:
+                self.salt = self.new_salt()
+                self.write_salt(self.salt)
             self.key = self.get_key(password)
             self.fernet = Fernet(self.key)
         except Exception:

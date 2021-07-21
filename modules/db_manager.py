@@ -150,7 +150,6 @@ class VerifyLogin(DataBase):
             return False
 
     def verify(self, key_manager):
-        print(key_manager.salt)
         res = self.query_all()
         for doc in res["docs"]:
             to_verify = doc["verify"]
