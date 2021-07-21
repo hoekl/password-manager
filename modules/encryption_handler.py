@@ -81,6 +81,5 @@ class CryptoKeyManager:
         decrypted = self.fernet.decrypt(msg)
         return decrypted
 
-
 if __name__ == "__main__":
     pass

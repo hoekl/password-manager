@@ -218,7 +218,7 @@ class NewLogin(wx.Panel):
             try:
                 self.GrandParent.Parent.db.put(self.doc)
                 self.on_success()
-                self.Parent.Parent.Parent.Parent.refresh()
+                self.Parent.Parent.Parent.Parent.refresh(False)
                 self.Parent.on_refresh()
 
             except CouchDB2Exception as db_except:

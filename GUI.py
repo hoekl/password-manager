@@ -24,10 +24,9 @@ light_grey = wx.Colour(55, 55, 55)
 class LoginScreen(wx.Frame):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.db = db_ops.DataBase("test_mock_data")
-        self.verify_db = db_ops.VerifyLogin("verification2")
+        self.db = db_ops.DataBase("encrypted_mock_data")
         self.authenticated = False
-
+        self.verify_db = db_ops.verify_db
         if self.db.is_new == True:
             if self.existing_db_check() == False:
                 password = self.create_password()
@@ -74,7 +73,7 @@ class LoginScreen(wx.Frame):
             salt_path = fileDialog.GetPath()
 
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter password for this db", style=wx.OK | wx.CANCEL
+            self, message="Enter password for this db", style=wx.OK | wx.CANCEL | wx.CENTRE
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -87,7 +86,7 @@ class LoginScreen(wx.Frame):
 
     def get_pw(self):
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter your password", style=wx.OK | wx.CANCEL
+            self, message="Enter your password", style=wx.OK | wx.CANCEL | wx.CENTRE
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -104,7 +103,7 @@ class LoginScreen(wx.Frame):
 
     def create_password(self):
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter new master password", style=wx.OK | wx.CANCEL
+            self, message="Enter new master password", style=wx.OK | wx.CANCEL | wx.CENTRE
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -138,29 +137,33 @@ class BaseFrame(wx.Frame):
             | flnb.FNB_DEFAULT_STYLE,
         )
         self.notebook.SetBackgroundColour(dark_grey)
-        first_panel = login.CreateLogin(self.notebook)
-        second_panel = ListPanel(self.notebook)
-        self.notebook.AddPage(first_panel, "New Login", False)
-        self.notebook.AddPage(second_panel, "Logins", True)
+        self.login_panel = login.CreateLogin(self.notebook)
+        self.view_panel = ListPanel(self.notebook)
+        self.notebook.AddPage(self.login_panel, "New Login", False)
+        self.notebook.AddPage(self.view_panel, "Logins", True)
 
         self.notebook_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.notebook_sizer.Add(self.notebook, 1, flag=wx.EXPAND)
         self.base_panel.SetSizer(self.notebook_sizer)
 
-    def refresh(self):
+    def refresh(self, show):
         self.notebook.DeletePage(1)
         new_list_panel = ListPanel(self.notebook)
-        self.notebook.AddPage(new_list_panel, "Logins", False)
+        self.notebook.AddPage(new_list_panel, "Logins", show)
 
     def create_menu_bar(self):
         db_menu = wx.Menu()
+        edit_menu = wx.Menu()
         db_dump = db_menu.Append(-1, "&Export Database \tCtrl-E", "Download the full database in .tar format")
+        change_pw = edit_menu.Append(-1, "&Change Master Password \tCtrl+P", "Change the master password used to encrypt your logins")
         menu_bar = wx.MenuBar()
-        menu_bar.Append(db_menu, "Database")
+        menu_bar.Append(db_menu, "&Database")
+        menu_bar.Append(edit_menu, "&Edit")
 
         self.SetMenuBar(menu_bar)
         self.Bind(wx.EVT_MENU, self.dump_db, db_dump)
+        self.Bind(wx.EVT_MENU, self.change_password, change_pw)
 
     def dump_db(self, event):
         with wx.DirDialog(self, "Choose save location") as fileDialog:
@@ -169,6 +172,60 @@ class BaseFrame(wx.Frame):
                 return
             path_name = fileDialog.GetPath()
         self.db.dump(path_name)
+
+    def change_password(self, *event):
+        existing_pw = self.get_existingpw()
+        new_pw = self.new_pw_entry()
+        existing_keymngr = crypto.CryptoKeyManager(existing_pw)
+        new_keymngr = crypto.CryptoKeyManager(new_pw, True)
+        try:
+            self.db.change_masterpw(new_keymngr.fernet, existing_keymngr.fernet)
+            dialog = wx.MessageDialog(self, "Password change successful", "Success!", style=wx.OK | wx.CENTRE)
+            dialog.ShowModal()
+            dialog.Destroy()
+            new_fernet = db_ops.Fernet_obj(new_keymngr.fernet)
+            self.base_panel.db.set_fernet(new_fernet)
+            self.Freeze()
+            self.refresh(True)
+            self.Thaw()
+        except Exception as e:
+            print(e)
+
+    def get_existingpw(self):
+        with wx.PasswordEntryDialog(self, "Enter your existing password", "Existing password", style=wx.OK | wx.CANCEL | wx.CENTRE) as pwDialog:
+            if pwDialog.ShowModal() == wx.ID_CANCEL:
+                return
+            existing_pw = pwDialog.Value
+            check = db_ops.verify_db.verify_password(existing_pw)
+            if check:
+                return existing_pw
+            else:
+                with wx.MessageDialog(self, "Incorrect Password, please try again", "Incorrect Password", style=wx.OK | wx.CENTRE) as alertDialog:
+                    if alertDialog.ShowModal() == wx.ID_OK:
+                        self.change_password()
+                    else:
+                        return
+
+    def new_pw_entry(self):
+        new_pw = self.get_new_pw("Enter your new password", "New password")
+        check_newpw = self.get_new_pw("Confirm your new password", "Confirm password")
+        if new_pw != check_newpw:
+            infoDialog =  wx.MessageDialog(self, "New passwords do not match, please try again", "No match", style=wx.OK | wx.CENTRE)
+            infoDialog.ShowModal()
+            infoDialog.Destroy()
+            return self.new_pw_entry()
+        else:
+            return check_newpw
+
+
+    def get_new_pw(self, message, caption):
+        with wx.PasswordEntryDialog(self, message, caption, style=wx.OK | wx.CANCEL | wx.CENTRE) as newPwDialog:
+            if newPwDialog.ShowModal() == wx.ID_CANCEL:
+                return
+            return newPwDialog.Value
+
+
+
 
 
 class ListPanel(wx.Panel):

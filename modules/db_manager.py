@@ -3,6 +3,7 @@ import traceback
 import couchdb2
 import os
 from datetime import datetime
+from cryptography.fernet import MultiFernet
 from modules.configuration import config
 from modules import encryption_handler as crypto
 
@@ -80,6 +81,23 @@ class DataBase:
     def import_db(self, path):
         self.db.undump(path)
 
+    def change_masterpw(self, new_fernet, old_fernet):
+        self.fernet.create_multifernet(new_fernet, old_fernet)
+        res = self.query_all()
+        for doc in res["docs"]:
+            doc_temp = {}
+            for key, value in doc.items():
+                if key == "_id" or key == "_rev":
+                    doc_temp.update({key:value})
+                else:
+                    rt_key = self.fernet.multifernet.rotate(key.encode())
+                    rt_value = self.fernet.multifernet.rotate(value.encode())
+                    str_key = rt_key.decode()
+                    str_value = rt_value.decode()
+                    doc_temp.update({str_key:str_value})
+
+            self.db.put(doc_temp)
+        verify_db.update(self.fernet.multifernet)
 
     def check_is_db(self):
         try:
@@ -91,6 +109,13 @@ class DataBase:
 class Fernet_obj:
     def __init__(self, fernet) -> crypto.Fernet:
         self.fernet = fernet
+
+    def create_multifernet(self, new_fernet, old_fernet):
+        self.multifernet = MultiFernet([new_fernet, old_fernet])
+
+    def rotate_keys(self, encrypted_orig):
+        rotated = self.multifernet.rotate(encrypted_orig)
+        return rotated.decode()
 
     def decrypt_initial(self, res):
         docs = {"doc_array": []}
@@ -164,6 +189,20 @@ class VerifyLogin(DataBase):
         v_doc = {"verify": crypto_message}
         self.db.put(v_doc)
 
+    def update(self, multifernet):
+        res = self.query_all()
+        for doc in res["docs"]:
+            new_doc = {}
+            to_verify = doc["verify"]
+            _id = doc["_id"]
+            _rev = doc["_rev"]
+            rt_verify = multifernet.rotate(to_verify.encode())
+            str_verify = rt_verify.decode()
+            new_doc.update({"_id":_id, "_rev":_rev, "verify":str_verify})
+            self.db.put(new_doc)
+
+
+
 
 class LoginData:
     def __init__(self, doc=None):
@@ -176,6 +215,9 @@ class LoginData:
                 self.password = doc["Password"]
             except:
                 pass
+
+
+verify_db = VerifyLogin("verification")
 
 
 if __name__ == "__main__":
