@@ -24,8 +24,8 @@ light_grey = wx.Colour(55, 55, 55)
 class LoginScreen(wx.Frame):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.db = db_ops.DataBase("encrypted_mock_data")
-        self.verify_db = db_ops.VerifyLogin("verification")
+        self.db = db_ops.DataBase("test_mock_data")
+        self.verify_db = db_ops.VerifyLogin("verification2")
         self.authenticated = False
 
         if self.db.is_new == True:
@@ -59,11 +59,14 @@ class LoginScreen(wx.Frame):
             wx.Exit()
 
     def import_existing(self):
-        with wx.FileDialog(self, "Choose file to import", wildcard="*.tar") as fileDialog:
-            fileDialog.SetMessage("Choose file to import")
+        with wx.FileDialog(self, "Choose database file to import", wildcard="*.tar") as fileDialog:
+            fileDialog.SetMessage("Choose database file to import")
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
             tar_path = fileDialog.GetPath()
+        with wx.MessageDialog(self, "Please specify location of salt to import", "Salt location", style=wx.OK | wx.CENTRE) as msgDialog:
+            if msgDialog.ShowModal() == wx.ID_CANCEL:
+                return
         with wx.FileDialog(self, "Choose salt location", wildcard="*.key") as fileDialog:
             fileDialog.SetMessage("Choose salt location")
             if fileDialog.ShowModal() == wx.ID_CANCEL:
