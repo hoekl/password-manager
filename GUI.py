@@ -31,7 +31,7 @@ class LoginScreen(wx.Frame):
         if self.db.is_new == True:
             if self.existing_db_check() == False:
                 password = self.create_password()
-                key_manager = crypto.CryptoKeyManager(password)
+                key_manager = crypto.CryptoKeyManager(password, True)
                 self.verify_db.setup(key_manager)
             else:
                 key_manager = self.import_existing()
