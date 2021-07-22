@@ -3,7 +3,7 @@ import string
 from couchdb2 import CouchDB2Exception
 import wx
 import hashlib
-# from modules import db_manager as db_ops
+import re
 from modules import custom_widgets as cw
 
 dark_grey = wx.Colour(38, 38, 38)
@@ -344,19 +344,63 @@ class PWGenWindow(wx.Dialog):
             self.source_string += string.digits
         if 2 in options:
             self.source_string += string.punctuation
-
+        return options
     def generate_pw(self, event):
-        self.set_pw_options(self.choices_box.GetCheckedItems())
+        options = self.set_pw_options(self.choices_box.GetCheckedItems())
         while True:
             password = "".join(
                 (secrets.choice(self.source_string) for i in range(self.pw_length))
             )
-            if (any(char.islower() for char in password)
-                and any(char.isupper() for char in password)
-                and sum(char.isdigit() for char in password) >= 3):
+            if self.validate_pw(password, options) == True:
                 break
+
         self.txt_ctrl.Clear()
         self.txt_ctrl.write(password)
+
+    def validate_pw(self, password, options):
+        if 0 in options:
+            upperc = self.validate_upperc(password)
+        else:
+            upperc = True
+        if 1 in options:
+            nums = self.validate_nums(password)
+        else:
+            nums = True
+        if 2 in options:
+            symbols = self.validate_syms(password)
+        else:
+            symbols = True
+        lowerc = self.validate_lowerc(password)
+        if upperc and nums and symbols and lowerc == True:
+            return True
+        else:
+            return False
+
+    def validate_lowerc(self, password):
+        if (any(char.islower() for char in password)):
+            return True
+        else:
+            return False
+
+    def validate_upperc(self, password):
+        if (any(char.isupper() for char in password)):
+            return True
+        else:
+            return False
+
+    def validate_nums(self, password):
+        if (sum(char.isdigit() for char in password) >= 3):
+            return True
+        else:
+            return False
+
+    def validate_syms(self, password):
+        syms = re.sub("[\w]+", "", password)    # use regex to remove all 'word' characters
+        count = len(syms)               # remaining chars will only be special characters
+        if count >= 3:
+            return True
+        else:
+            return False
 
     def copy_pw(self, event):
         self.txt_ctrl.SelectAll()
