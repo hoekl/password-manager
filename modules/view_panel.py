@@ -1,5 +1,7 @@
 import wx
 import time
+
+from wx.core import ALIGN_TOP
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
 import pprint
@@ -23,8 +25,10 @@ class ViewPanel(wx.Panel):
         self.button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         self.button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
         self.group_button_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.strengthbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
         self.panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.layoutsizer = wx.BoxSizer(wx.VERTICAL)
 
         while self.number_of_fields < 6:
             self.add_field()
@@ -75,6 +79,8 @@ class ViewPanel(wx.Panel):
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.user_add_field)
         self.btn_add_field.Hide()
 
+        self.strength_indicator = cw.StrengthSizer(self)
+
         self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer1.Add(self.btn_save, 0, wx.ALIGN_CENTER, border=50)
         self.button_sizer1.Add(25, -1)
@@ -94,6 +100,7 @@ class ViewPanel(wx.Panel):
             border=50,
         )
 
+
         self.group_button_sizer.Add(self.button_sizer1, 0, wx.ALIGN_CENTER, border=50)
         self.group_button_sizer.Add(25, 25)
         self.group_button_sizer.Add(
@@ -102,6 +109,9 @@ class ViewPanel(wx.Panel):
             wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
             border=50,
         )
+        self.indicator_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.indicator_sizer.Add(self.strength_indicator, 1, wx.ALIGN_CENTER_VERTICAL)
+        self.bounding_sizer.Add(self.indicator_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_CENTER_HORIZONTAL)
         self.bounding_sizer.Add(50, 50)
         self.bounding_sizer.Add(
             self.group_button_sizer,
@@ -124,10 +134,12 @@ class ViewPanel(wx.Panel):
         self.btn_add_field.Hide()
         self.btn_edit.Show()
         tic = time.perf_counter()
-
         self.current_dataobj = db_ops.LoginData(doc)
         fields_needed = len(self.current_dataobj.data)
         self.create_view(fields_needed, self.current_dataobj.data)
+        self.strength_indicator.strengthbar.set_pw(self.current_dataobj.password)
+
+
 
         toc = time.perf_counter()
 
@@ -425,7 +437,7 @@ class ViewPanel(wx.Panel):
         i = 0
         for sizer_item in self.remove_btn_sizer.__iter__():
             ctrl = sizer_item.GetWindow()
-            ctrl.setName(str(i))
+            ctrl.SetName(str(i))
             i += 1
         self.Layout()
         self.Thaw()
