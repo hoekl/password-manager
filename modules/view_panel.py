@@ -1,6 +1,8 @@
 import wx
 import time
 
+from wx.core import EVT_RADIOBOX
+
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
 from modules.login_creator import PWGenWindow
@@ -313,6 +315,7 @@ class ViewPanel(wx.Panel):
                 pw_ctrl = cw.TextCtrl(
                     self, value=self.current_dataobj.password, name="password"
                 )
+                pw_ctrl.Bind(wx.EVT_KILL_FOCUS, self.refresh_indicator)
                 pw_ctrl.set_size()
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Hide()
@@ -323,6 +326,13 @@ class ViewPanel(wx.Panel):
                 self.Parent.SendSizeEvent()
                 self.Thaw()
                 break
+
+    def refresh_indicator(self, event):
+        event.Skip()
+        evt_source = event.EventObject
+        password = evt_source.Value
+        self.strength_indicator.strengthbar.set_pw(password)
+        self.Refresh()
 
     def hide_pw(self, *event):
         self.Freeze()

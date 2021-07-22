@@ -59,7 +59,7 @@ class StrengthSizer(wx.Panel):
         super().__init__(*args, **kw)
         self.strengthbar = PWStrengthIndicator(self)
         self.label = StaticText(self, label="Password strength:")
-        self.strength_label = StaticText(self, label="Testing")
+        self.strength_label = StaticText(self)
         self.hsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.vsizer = wx.BoxSizer(wx.VERTICAL)
         self.hsizer.Add(self.label, 1, wx.ALIGN_TOP)
