@@ -323,14 +323,21 @@ class ViewPanel(wx.Panel):
         self.Thaw()
 
     def discard_edits(self, event):
-        self.Freeze()
-        self.Parent.on_select_item()
-        self.btn_discard_edits.Hide()
-        self.btn_save.Hide()
-        self.btn_add_field.Hide()
-        self.btn_edit.Show()
-        self.Layout()
-        self.Thaw()
+        with wx.MessageDialog(
+            self,
+            message="Are you sure you want to discard your changes?",
+            caption="Discard changes?",
+            style=wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT | wx.CENTRE,
+        ) as confirm_dialog:
+            if confirm_dialog.ShowModal() == wx.ID_YES:
+                self.Freeze()
+                self.Parent.on_select_item()
+                self.btn_discard_edits.Hide()
+                self.btn_save.Hide()
+                self.btn_add_field.Hide()
+                self.btn_edit.Show()
+                self.Layout()
+                self.Thaw()
 
     def save_edits(self, event):
         self.Freeze()
@@ -344,7 +351,7 @@ class ViewPanel(wx.Panel):
             else:
                 new_doc.update({key: value})
 
-        self.GrandParent.db.put(new_doc)
+        self.GrandParent.Parent.db.put(new_doc)
         self.convert_txtbox()
         self.hide_pw()
         self.btn_save.Hide()
@@ -424,24 +431,22 @@ class ViewPanel(wx.Panel):
         self.Thaw()
 
     def on_delete(self, event):
-        confirm_dialog = wx.MessageDialog(
+        with wx.MessageDialog(
             self,
             message="Are you sure you want to delete the selected item?",
             caption="Delete item?",
-            style=wx.OK | wx.CANCEL | wx.CANCEL_DEFAULT,
-        )
-        choice_response = confirm_dialog.ShowModal()
-        confirm_dialog.Destroy()
-        if choice_response == 5100:  # 5100 is response code for OK
-            doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
-            self.GrandParent.db.delete(doc)
+            style=wx.YES_NO | wx.CANCEL | wx.CANCEL_DEFAULT | wx.CENTRE,
+        ) as confirm_dialog:
+            if confirm_dialog.ShowModal() == wx.ID_YES:
+                doc = {"_id": self.current_dataobj.id, "_rev": self.current_dataobj.rev}
+                self.GrandParent.Parent.db.delete(doc)
 
-            # Get and display next item from list
-            item_index = self.Parent.list_box.GetSelection()
-            self.Parent.list_box.Delete(item_index)
-            self.Parent.list_box.SetSelection(item_index)
-            self.Parent.on_select_item()
-            self.Parent.Update()
+                # Get and display next item from list
+                item_index = self.Parent.list_box.GetSelection()
+                self.Parent.list_box.Delete(item_index)
+                self.Parent.list_box.SetSelection(item_index)
+                self.Parent.on_select_item()
+                self.Parent.Update()
 
     def to_readonly(self):
         for sizer_item in self.txtbox_sizer.__iter__():
