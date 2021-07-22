@@ -1,9 +1,9 @@
 import wx
 import time
 
-from wx.core import ALIGN_TOP
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
+from modules.login_creator import PWGenWindow
 import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -79,6 +79,10 @@ class ViewPanel(wx.Panel):
         self.btn_add_field.Bind(wx.EVT_BUTTON, self.user_add_field)
         self.btn_add_field.Hide()
 
+        self.btn_gen_pw = cw.Button(self, label="Generate Password")
+        self.btn_gen_pw.Bind(wx.EVT_BUTTON, self.generate_pw)
+        self.btn_gen_pw.Hide()
+
         self.strength_indicator = cw.StrengthSizer(self)
 
         self.button_sizer1.Add(self.btn_edit, 0, wx.ALIGN_CENTER, border=50)
@@ -99,6 +103,13 @@ class ViewPanel(wx.Panel):
             wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
             border=50,
         )
+        self.button_sizer2.Add(25, 25)
+        self.button_sizer2.Add(
+            self.btn_gen_pw,
+            0,
+            wx.ALIGN_CENTER | wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
+            border=50,
+        )
 
 
         self.group_button_sizer.Add(self.button_sizer1, 0, wx.ALIGN_CENTER, border=50)
@@ -112,7 +123,7 @@ class ViewPanel(wx.Panel):
         self.indicator_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.indicator_sizer.Add(self.strength_indicator, 1, wx.ALIGN_CENTER_VERTICAL)
         self.bounding_sizer.Add(self.indicator_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_CENTER_HORIZONTAL)
-        self.bounding_sizer.Add(50, 50)
+        self.bounding_sizer.Add(25, 25)
         self.bounding_sizer.Add(
             self.group_button_sizer,
             0,
@@ -125,6 +136,25 @@ class ViewPanel(wx.Panel):
 
         self.SetSizer(self.panel_sizer)
 
+    def generate_pw(self, event):
+        dialog = PWGenWindow(self, title="Generate new password")
+        res = dialog.ShowModal()
+        if res == 5100:
+            password = dialog.txt_ctrl.Value
+            self.autofill(password)
+        else:
+            pass
+        dialog.Destroy()
+
+    def autofill(self, password):
+        for sizer_item in self.txtbox_sizer.__iter__():
+            txtbox = sizer_item.GetWindow()
+            if txtbox.Name == "password":
+                txtbox.SetValue(password)
+                self.strength_indicator.strengthbar.set_pw(password)
+                self.Refresh()
+                break
+
     def show_data(self, doc):
         self.btn_hide_pw.Hide()
         self.btn_copy_pw.Hide()
@@ -132,6 +162,7 @@ class ViewPanel(wx.Panel):
         self.btn_save.Hide()
         self.btn_discard_edits.Hide()
         self.btn_add_field.Hide()
+        self.btn_gen_pw.Hide()
         self.btn_edit.Show()
         tic = time.perf_counter()
         self.current_dataobj = db_ops.LoginData(doc)
@@ -331,6 +362,7 @@ class ViewPanel(wx.Panel):
         self.btn_save.Show()
         self.btn_discard_edits.Show()
         self.btn_add_field.Show()
+        self.btn_gen_pw.Show()
         self.Layout()
         self.Thaw()
 

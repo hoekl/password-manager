@@ -68,6 +68,8 @@ class StrengthSizer(wx.Panel):
         self.vsizer.Add(self.strength_label, 1, wx.ALIGN_CENTER_HORIZONTAL)
         self.hsizer.Add(self.vsizer, 1, wx.ALIGN_CENTER_VERTICAL)
         self.SetSizer(self.hsizer)
+
+
 class PWStrengthIndicator(wx.Panel):
     def __init__(self, parent, password=None):
         super().__init__(parent)
@@ -92,9 +94,13 @@ class PWStrengthIndicator(wx.Panel):
             colour = self.setcolourandlabel(strength)
             update = self.FromDIP(wx.Size(strength, 10))
             dc.SetBrush(wx.Brush(grey_btn))
-            dc.DrawRoundedRectangle(-1,self.ycoord,self.bar_size[0], self.bar_size[1], self.radius)
+            dc.DrawRoundedRectangle(
+                -1, self.ycoord, self.bar_size[0], self.bar_size[1], self.radius
+            )
             dc.SetBrush(wx.Brush(colour))
-            dc.DrawRoundedRectangle(-1, self.ycoord, update[0], self.bar_size[1], self.radius)
+            dc.DrawRoundedRectangle(
+                -1, self.ycoord, update[0], self.bar_size[1], self.radius
+            )
 
     def setcolourandlabel(self, strength):
         if strength <= 20:
@@ -117,18 +123,15 @@ class PWStrengthIndicator(wx.Panel):
         self.Parent.vsizer.Layout()
         return colour
 
-
     def calc_strength(self):
-        print(self.password)
         lowerc = list(string.ascii_lowercase)
         upperc = list(string.ascii_uppercase)
         digits = list(string.digits)
         symbols = list(string.punctuation)
         list_pw = list(self.password)
         length_pw = len(list_pw) + 1
-        dict_pw = {i:f for i, f in enumerate(list_pw)}
+        dict_pw = {i: f for i, f in enumerate(list_pw)}
         values = dict_pw.values()
-        print(dict_pw)
         lower_bool = self.check_contents(lowerc, values)
         upper_bool = self.check_contents(upperc, values)
         digits_bool = self.check_contents(digits, values)
@@ -146,8 +149,7 @@ class PWStrengthIndicator(wx.Panel):
         if pool_size != 0:
             entropy = length_pw * log2(pool_size)
             normalised_e = self.normalise_range(entropy)
-        print(entropy)
-        print(normalised_e)
+
         return normalised_e
 
     def check_contents(self, charset, values):
@@ -159,9 +161,11 @@ class PWStrengthIndicator(wx.Panel):
     def normalise_range(self, entropy):
         max_entropy = 217
         max_normalised = 100
-        slope = max_normalised/max_entropy
+        slope = max_normalised / max_entropy
         normalised = slope * entropy
         return round(normalised)
+
+
 class DBpanel(wx.Panel):
     def __init__(self, parent, db=None):
         super().__init__(parent)
@@ -172,4 +176,3 @@ class StaticText(wx.StaticText):
     def __init__(self, parent, **kw):
         super().__init__(parent, **kw)
         self.SetForegroundColour(off_white)
-
