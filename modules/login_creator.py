@@ -92,8 +92,13 @@ class NewLogin(wx.Panel):
         )
         self.lbl_and_box_sizer.AddStretchSpacer()
 
+        self.strength_indicator = cw.StrengthSizer(self)
+
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
-        self.bounding_sizer.Add(50, 50)
+        self.indicator_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.indicator_sizer.Add(self.strength_indicator, 1, wx.ALIGN_CENTER_VERTICAL)
+        self.bounding_sizer.Add(self.indicator_sizer, 0, wx.ALIGN_TOP | wx.ALIGN_CENTER_HORIZONTAL)
+        self.bounding_sizer.Add(25, 25)
         self.bounding_sizer.Add(self.button_sizer, 0, wx.ALIGN_CENTER)
 
         self.panel_sizer.AddStretchSpacer()
@@ -108,6 +113,9 @@ class NewLogin(wx.Panel):
         else:
             label_box = cw.TextCtrl(self, name=str(self.number_of_fields))
             txtbox = cw.TextCtrl(self, name=str(self.number_of_fields))
+
+        if txtbox.Name == "password":
+            txtbox.Bind(wx.EVT_KEY_UP, self.check_pw)
 
         label_box.make_editable()
         txtbox.make_editable()
@@ -178,6 +186,13 @@ class NewLogin(wx.Panel):
 
         self.Layout()
         self.Thaw()
+
+    def check_pw(self, event):
+        event.Skip()
+        evt_source = event.EventObject
+        password = evt_source.Value
+        self.strength_indicator.strengthbar.set_pw(password)
+        self.strength_indicator.strengthbar.Refresh()
 
     def on_generate(self, event):
         dialog = cw.PWGenWindow(self, title="Generate new password")

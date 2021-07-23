@@ -85,6 +85,8 @@ class PWStrengthIndicator(wx.Panel):
         self.ycoord = coords[1]
         if password:
             self.password = password
+        else:
+            self.password = None
 
     def set_pw(self, password):
         self.password = password
@@ -151,7 +153,8 @@ class PWStrengthIndicator(wx.Panel):
         if pool_size != 0:
             entropy = length_pw * log2(pool_size)
             normalised_e = self.normalise_range(entropy)
-
+        if normalised_e > 100:
+            normalised_e = 100
         return normalised_e
 
     def check_contents(self, charset, values):

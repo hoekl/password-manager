@@ -151,7 +151,7 @@ class ViewPanel(wx.Panel):
             if txtbox.Name == "password":
                 txtbox.SetValue(password)
                 self.strength_indicator.strengthbar.set_pw(password)
-                self.Refresh()
+                self.strength_indicator.strengthbar.Refresh()
                 break
 
     def show_data(self, doc):
@@ -312,7 +312,7 @@ class ViewPanel(wx.Panel):
                 pw_ctrl = cw.TextCtrl(
                     self, value=self.current_dataobj.password, name="password"
                 )
-                pw_ctrl.Bind(wx.EVT_KILL_FOCUS, self.refresh_indicator)
+                pw_ctrl.Bind(wx.EVT_KEY_UP, self.refresh_indicator)
                 pw_ctrl.set_size()
                 self.txtbox_sizer.Replace(ctrl, pw_ctrl)
                 ctrl.Hide()
@@ -329,7 +329,7 @@ class ViewPanel(wx.Panel):
         evt_source = event.EventObject
         password = evt_source.Value
         self.strength_indicator.strengthbar.set_pw(password)
-        self.Refresh()
+        self.strength_indicator.strengthbar.Refresh()
 
     def hide_pw(self, *event):
         self.Freeze()
