@@ -1,11 +1,8 @@
 import wx
 import time
 
-from wx.core import EVT_RADIOBOX
-
 from modules import db_manager as db_ops
 from modules import custom_widgets as cw
-from modules.login_creator import PWGenWindow
 import pprint
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -139,7 +136,7 @@ class ViewPanel(wx.Panel):
         self.SetSizer(self.panel_sizer)
 
     def generate_pw(self, event):
-        dialog = PWGenWindow(self, title="Generate new password")
+        dialog = cw.PWGenWindow(self, title="Generate new password")
         res = dialog.ShowModal()
         if res == 5100:
             password = dialog.txt_ctrl.Value
