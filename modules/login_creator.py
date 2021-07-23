@@ -71,6 +71,7 @@ class NewLogin(wx.Panel):
             "username",
             "password",
         ]
+        self.strength_indicator = cw.StrengthSizer(self)
 
         while self.number_of_fields < 5:
             self.add_field(*default_choices)
@@ -92,7 +93,6 @@ class NewLogin(wx.Panel):
         )
         self.lbl_and_box_sizer.AddStretchSpacer()
 
-        self.strength_indicator = cw.StrengthSizer(self)
 
         self.bounding_sizer.Add(self.lbl_and_box_sizer, 3, wx.ALIGN_CENTER)
         self.indicator_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -115,7 +115,8 @@ class NewLogin(wx.Panel):
             txtbox = cw.TextCtrl(self, name=str(self.number_of_fields))
 
         if txtbox.Name == "password":
-            txtbox.Bind(wx.EVT_KEY_UP, self.check_pw)
+            txtbox.Bind(wx.EVT_KEY_UP, self.strength_indicator.strengthbar.update)
+            txtbox.Bind(wx.EVT_TEXT, self.strength_indicator.strengthbar.update)
 
         label_box.make_editable()
         txtbox.make_editable()
@@ -186,13 +187,6 @@ class NewLogin(wx.Panel):
 
         self.Layout()
         self.Thaw()
-
-    def check_pw(self, event):
-        event.Skip()
-        evt_source = event.EventObject
-        password = evt_source.Value
-        self.strength_indicator.strengthbar.set_pw(password)
-        self.strength_indicator.strengthbar.Refresh()
 
     def on_generate(self, event):
         dialog = cw.PWGenWindow(self, title="Generate new password")

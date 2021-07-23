@@ -8,6 +8,7 @@ grey_btn = wx.Colour(69, 69, 69)
 off_white = wx.Colour(235, 235, 235)
 light_grey = wx.Colour(55, 55, 55)
 edit_colour = wx.Colour(63, 63, 63)
+black = wx.Colour(28, 28, 28)
 
 
 class Button(wx.Button):
@@ -57,11 +58,16 @@ class PasswordCtrl(TextCtrl):
 
 
 class StrengthSizer(wx.Panel):
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
-        self.strengthbar = PWStrengthIndicator(self)
-        self.label = StaticText(self, label="Password strength:")
-        self.strength_label = StaticText(self)
+    def __init__(self, parent, c_style=None):
+        super().__init__(parent)
+        if c_style:
+            self.strengthbar = PWStrengthIndicator(self, c_style=True)
+            self.label = StaticText(self, label="Password strength:", c_style=True)
+            self.strength_label = StaticText(self, c_style=True)
+        else:
+            self.strengthbar = PWStrengthIndicator(self)
+            self.label = StaticText(self, label="Password strength:")
+            self.strength_label = StaticText(self)
         self.hsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.vsizer = wx.BoxSizer(wx.VERTICAL)
         self.hsizer.Add(self.label, 1, wx.ALIGN_TOP)
@@ -73,7 +79,7 @@ class StrengthSizer(wx.Panel):
 
 
 class PWStrengthIndicator(wx.Panel):
-    def __init__(self, parent, password=None):
+    def __init__(self, parent, password=None, c_style=None):
         super().__init__(parent)
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.min_size = self.FromDIP(wx.Size(100, 21))
@@ -87,6 +93,10 @@ class PWStrengthIndicator(wx.Panel):
             self.password = password
         else:
             self.password = None
+        if c_style:
+            self.bgcolour = off_white
+        else:
+            self.bgcolour = grey_btn
 
     def set_pw(self, password):
         self.password = password
@@ -97,7 +107,7 @@ class PWStrengthIndicator(wx.Panel):
             strength = self.calc_strength()
             colour = self.setcolourandlabel(strength)
             update = self.FromDIP(wx.Size(strength, 10))
-            dc.SetBrush(wx.Brush(grey_btn))
+            dc.SetBrush(wx.Brush(self.bgcolour))
             dc.DrawRoundedRectangle(
                 -1, self.ycoord, self.bar_size[0], self.bar_size[1], self.radius
             )
@@ -170,6 +180,13 @@ class PWStrengthIndicator(wx.Panel):
         normalised = slope * entropy
         return round(normalised)
 
+    def update(self, event):
+        event.Skip()
+        evt_source = event.EventObject
+        password = evt_source.Value
+        self.set_pw(password)
+        self.Refresh()
+
 class PWGenWindow(wx.Dialog):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -199,6 +216,12 @@ class PWGenWindow(wx.Dialog):
             choices=["Upper and Lowercase", "Digits", "Special Characters"],
         )
         self.choices_box.SetCheckedItems((0, 1, 2))
+
+        self.strength_indicator = StrengthSizer(self, c_style=True)
+        self.txt_ctrl.Bind(wx.EVT_TEXT, self.strength_indicator.strengthbar.update)
+        self.indicator_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.indicator_sizer.Add(self.strength_indicator, 1, wx.ALIGN_CENTER_VERTICAL)
+
         self.generate_button.Bind(wx.EVT_BUTTON, self.generate_pw)
         self.copy_button.Bind(wx.EVT_BUTTON, self.copy_pw)
         self.spin_input.Bind(wx.EVT_SPINCTRL, self.set_pw_length)
@@ -206,17 +229,20 @@ class PWGenWindow(wx.Dialog):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.sub_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         self.sub_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.sub_sizer1.Add(self.generate_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer1.AddSpacer(10)
         self.sub_sizer1.Add(self.txt_ctrl, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
         self.sub_sizer1.AddSpacer(10)
-        self.sub_sizer1.Add(self.copy_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
-        self.sub_sizer2.Add(self.generate_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer1.Add(self.spin_input, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+
+        self.sub_sizer2.Add(self.autofill_button, 0, flag=wx.ALIGN_CENTER_VERTICAL)
         self.sub_sizer2.AddSpacer(10)
-        self.sub_sizer2.Add(self.spin_input, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
+        self.sub_sizer2.Add(self.copy_button, 0, flag=wx.ALIGN_CENTRE_VERTICAL)
         self.objects = [
             self.sub_sizer1,
             self.sub_sizer2,
             self.choices_box,
-            self.autofill_button
+            self.indicator_sizer
         ]
 
         self.main_sizer.AddStretchSpacer()
@@ -298,6 +324,13 @@ class PWGenWindow(wx.Dialog):
         else:
             return False
 
+    def check_strength(self, event):
+        event.Skip()
+        evt_source = event.EventObject
+        password = evt_source.Value
+        self.strength_indicator.strengthbar.set_pw(password)
+        self.strength_indicator.strengthbar.Refresh()
+
     def copy_pw(self, event):
         self.txt_ctrl.SelectAll()
         self.txt_ctrl.Copy()
@@ -314,6 +347,11 @@ class DBpanel(wx.Panel):
 
 
 class StaticText(wx.StaticText):
-    def __init__(self, parent, **kw):
-        super().__init__(parent, **kw)
-        self.SetForegroundColour(off_white)
+    def __init__(self, parent, label=None, c_style=None):
+        super().__init__(parent)
+        if label:
+            self.SetLabel(label)
+        if c_style:
+            self.SetForegroundColour(black)
+        else:
+            self.SetForegroundColour(off_white)
