@@ -2,13 +2,14 @@ import couchdb2
 import json
 import hashlib
 import encryption_handler as crypto
+from db_manager import VerifyLogin
 from configuration import config
 
-salt = crypto.read_salt()
+# salt = crypto.read_salt()
 
-key = crypto.get_key(salt, config.password)
-fernet = crypto.Fernet(key)
-
+# key = crypto.get_key(salt, config.password)
+# fernet = crypto.Fernet(key)
+keymng = crypto.CryptoKeyManager("test")
 server = config.server()
 
 def addTestData():
@@ -24,8 +25,8 @@ def addTestData():
     for doc in mock:
         new_doc = {}
         for key, value in doc.items():
-            c_key = fernet.encrypt(key.encode()).decode()
-            c_value = fernet.encrypt(value.encode()).decode()
+            c_key = keymng.fernet.encrypt(key.encode()).decode()
+            c_value = keymng.fernet.encrypt(value.encode()).decode()
             new_doc.update({c_key: c_value})
     # Save each json object into its own document in the database
         docHash = hashlib.sha256(
@@ -39,8 +40,10 @@ def addTestData():
         except Exception as e:
             print(e, "-Document already exists")
 
+verify = VerifyLogin("verification")
+verify.setup(keymng)
 
-addTestData()
+# addTestData()
 
 
 # db.put_design("mydesign",
