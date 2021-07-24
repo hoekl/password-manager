@@ -73,7 +73,7 @@ class LoginScreen(wx.Frame):
             salt_path = fileDialog.GetPath()
 
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter password for this db", style=wx.OK | wx.CANCEL | wx.CENTRE
+            self, message="Enter password for this database", style=wx.OK | wx.CANCEL | wx.CENTRE
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -124,11 +124,8 @@ class BaseFrame(wx.Frame):
         font.SetPointSize(11)
         self.SetFont(font)
         self.StatusBar.SetBackgroundColour(light_grey)
-        self.StatusBar.SetForegroundColour(off_white)
         self.SetBackgroundColour(dark_grey)
-        self.SetForegroundColour(off_white)
         self.base_panel = cw.DBpanel(self, self.db)
-
         self.notebook = flnb.FlatNotebook(
             self.base_panel,
             agwStyle=flnb.FNB_NO_NAV_BUTTONS
@@ -155,8 +152,8 @@ class BaseFrame(wx.Frame):
     def create_menu_bar(self):
         db_menu = wx.Menu()
         edit_menu = wx.Menu()
-        db_dump = db_menu.Append(-1, "&Export Database \tCtrl-E", "Download the full database in .tar format")
-        change_pw = edit_menu.Append(-1, "&Change Master Password \tCtrl+P", "Change the master password used to encrypt your logins")
+        db_dump = db_menu.Append(-1, "&Export Database \tCtrl-E")
+        change_pw = edit_menu.Append(-1, "&Change Master Password \tCtrl+P")
         menu_bar = wx.MenuBar()
         menu_bar.Append(db_menu, "&Database")
         menu_bar.Append(edit_menu, "&Edit")

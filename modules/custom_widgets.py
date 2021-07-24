@@ -143,7 +143,7 @@ class PWStrengthIndicator(wx.Panel):
         digits = list(string.digits)
         symbols = list(string.punctuation)
         list_pw = list(self.password)
-        length_pw = len(list_pw) + 1
+        length_pw = len(list_pw)
         dict_pw = {i: f for i, f in enumerate(list_pw)}
         values = dict_pw.values()
         lower_bool = self.check_contents(lowerc, values)
@@ -160,12 +160,14 @@ class PWStrengthIndicator(wx.Panel):
         if symbols_bool == True:
             pool_size += 32
 
+        if length_pw > 0 and pool_size == 0:
+            pool_size = 10
         if pool_size != 0:
             entropy = length_pw * log2(pool_size)
             normalised_e = self.normalise_range(entropy)
-        if normalised_e > 100:
-            normalised_e = 100
-        return normalised_e
+            if normalised_e > 100:
+                normalised_e = 100
+            return normalised_e
 
     def check_contents(self, charset, values):
         for char in charset:
@@ -174,7 +176,7 @@ class PWStrengthIndicator(wx.Panel):
         return False
 
     def normalise_range(self, entropy):
-        max_entropy = 217
+        max_entropy = 210
         max_normalised = 100
         slope = max_normalised / max_entropy
         normalised = slope * entropy
