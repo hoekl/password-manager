@@ -1,5 +1,6 @@
 
 from modules.db_manager import DataBase
+from modules import steganography as steg
 import time
 
 password = "test"
@@ -11,16 +12,21 @@ class Lockout():
     def get_status(self):
         res = self.db.query_all()
         if res["docs"] == []:
+            tries = _encode("5")
+            time = _encode("1")
             self.tries = 5
-            lockout_time = self.lockout(300)
-            self.db.db.put({"tries":5, "lockout":lockout_time})
+            self.time = 1
+            self.db.db.put({"tries":tries, "time":time})
+            self.get_status()
         else:
             doc = res["docs"][0]
-            self.tries = doc["tries"]
+            tries = doc["tries"]
+            self.tries = int(_decode(tries))
             self.id = doc["_id"]
             self.rev = doc["_rev"]
             try:
-                self.time = doc["time"]
+                time = doc["time"]
+                self.time = float(_decode(time))
             except:
                 self.time = 1
 
@@ -64,11 +70,14 @@ class Lockout():
             return False
 
     def update_db(self):
-        self.db.db.put({"_id":self.id, "_rev":self.rev, "tries":self.tries, "time":self.time})
+        tries = _encode(self.tries)
+        time = _encode(self.time)
+        self.db.db.put({"_id":self.id, "_rev":self.rev, "tries":tries, "time":time})
 
 lock = Lockout()
 def check_pw():
     if lock.check_access() == True:
+        print(lock.time, lock.tries)
         pw = input("Password please:")
         if pw == password:
             lock.clear_lockout()
@@ -82,4 +91,26 @@ def check_pw():
     else:
         print("you're still timed out")
 
+def _encode(msg):
+    byte_array = bytes(str(msg), "latin-1")
+    length = len(byte_array)
+    otp_array = steg.one_time_pad(length)
+    xored = steg.encrypt_xor(otp_array, byte_array)
+    binary_list = steg.convert_to_binary(xored)
+    cover_text = steg.get_cover_text()
+    merged_list = steg.merge_cover_with_secret(cover_text, binary_list)
+    string_merged = "".join(merged_list)
+    return string_merged
+
+def _decode(msg):
+    bit_list = steg.decode_message(msg)
+    otp_array = steg.one_time_pad((len(bit_list)//8))
+    byte_str_list = steg.convert_to_bits(bit_list)
+    byte_list = []
+    byte_list = steg.split_to_bytes(byte_list,byte_str_list)
+    binary_list = steg.string_bits_to_binary(byte_list)
+    int_list = steg.binary_to_int(binary_list)
+    decoded_msg = steg.decrypt_xor(otp_array, int_list)
+    cleartext = steg.int_to_characters(decoded_msg)
+    return cleartext
 check_pw()
