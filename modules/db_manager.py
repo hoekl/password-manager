@@ -75,11 +75,20 @@ class DataBase:
         timestamp = dt_object.strftime("%d-%b-%Y-%H-%M")
         dir_path = os.path.join(path + os.sep + "database_dump" + os.sep + timestamp)
         file_path = os.path.join(dir_path, "db_export.tar")
+        salt_path = os.path.join(dir_path, "salt.key")
         os.makedirs(dir_path)
         self.db.dump(file_path)
+        self.dump_salt(salt_path)
 
     def import_db(self, path):
         self.db.undump(path)
+
+    def dump_salt(self, path):
+        key_manager = crypto.CryptoKeyManager(" ")
+        salt = key_manager.salt
+        with open(path, 'wb') as f:
+            f.write(salt)
+
 
     def change_masterpw(self, new_fernet, old_fernet):
         self.fernet.create_multifernet(new_fernet, old_fernet)
