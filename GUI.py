@@ -8,6 +8,7 @@ from modules import db_manager as db_ops
 from modules import view_panel as vp
 from modules import custom_widgets as cw
 from modules import encryption_handler as crypto
+from lockout_manager import Lockout
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -35,9 +36,12 @@ class LoginScreen(wx.Frame):
             else:
                 key_manager = self.import_existing()
                 self.verify_db.setup(key_manager)
+        self.lockout = Lockout()
         while self.authenticated == False:
-            if self.get_pw() == False:
+            if self.lockout.check_access() == True:
                 self.get_pw()
+            else:
+                self.locked_message()
 
         fernet_obj = db_ops.Fernet_obj(self.fernet)
         self.db.set_fernet(fernet_obj)
@@ -95,8 +99,12 @@ class LoginScreen(wx.Frame):
             dialog.Destroy()
             if self.fernet:
                 self.authenticated = True
+                self.lockout.clear_lockout()
                 return True
             else:
+                self.lockout.increase_count()
+                if self.lockout.tries >= 5:
+                    self.lockout.trigger_lockout()
                 return False
         if res == 5101:
             wx.Exit()
@@ -112,6 +120,11 @@ class LoginScreen(wx.Frame):
             return password
         if res == 5101:
             wx.Exit()
+
+    def locked_message(self):
+        with wx.MessageDialog(self, message="Incorrect password entered too many times", caption="Locked account", style=wx.OK) as lockoutDialog:
+            if lockoutDialog.ShowModal() == wx.ID_OK:
+                wx.Exit()
 
 
 class BaseFrame(wx.Frame):
