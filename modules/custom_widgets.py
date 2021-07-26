@@ -63,20 +63,27 @@ class StrengthSizer(wx.Panel):
         if c_style:
             self.strengthbar = PWStrengthIndicator(self, c_style=True)
             self.label = StaticText(self, label="Password strength:", c_style=True)
+            self.advice_label = StaticText(self, c_style=True)
             self.strength_label = StaticText(self, c_style=True)
+
         else:
             self.strengthbar = PWStrengthIndicator(self)
             self.label = StaticText(self, label="Password strength:")
+            self.advice_label = StaticText(self)
             self.strength_label = StaticText(self)
         self.hsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.vsizer = wx.BoxSizer(wx.VERTICAL)
-        self.hsizer.Add(self.label, 1, wx.ALIGN_TOP)
-        self.hsizer.Add(self.FromDIP(wx.Size(40, 20)))
-        self.vsizer.Add(self.strengthbar, 1, wx.ALIGN_CENTER_HORIZONTAL)
-        self.vsizer.Add(self.strength_label, 1, wx.ALIGN_CENTER_HORIZONTAL)
-        self.hsizer.Add(self.vsizer, 1, wx.ALIGN_CENTER_VERTICAL)
-        self.SetSizer(self.hsizer)
-
+        self.bounding_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.hsizer.AddStretchSpacer()
+        self.hsizer.Add(self.label, 1, wx.ALIGN_CENTRE_VERTICAL)
+        self.hsizer.Add(self.FromDIP(wx.Size(60, 20)))
+        self.hsizer.Add(self.strength_label, 1, wx.ALIGN_CENTRE_VERTICAL)
+        self.hsizer.Add(self.strengthbar, 1, wx.ALIGN_TOP)
+        self.hsizer.AddStretchSpacer()
+        self.vsizer.Add(self.advice_label, 1, wx.ALIGN_CENTER_HORIZONTAL)
+        self.bounding_sizer.Add(self.hsizer, 1, wx.ALIGN_CENTER)
+        self.bounding_sizer.Add(self.vsizer, 1, wx.ALIGN_CENTER)
+        self.SetSizer(self.bounding_sizer)
 
 class PWStrengthIndicator(wx.Panel):
     def __init__(self, parent, password=None, c_style=None):
@@ -115,6 +122,7 @@ class PWStrengthIndicator(wx.Panel):
             dc.DrawRoundedRectangle(
                 -1, self.ycoord, update[0], self.bar_size[1], self.radius
             )
+            self.Parent.bounding_sizer.Layout()
 
     def setcolourandlabel(self, strength):
         if strength <= 20:
@@ -132,7 +140,11 @@ class PWStrengthIndicator(wx.Panel):
         if strength > 80:
             label = "Excellent"
             colour = wx.Colour(149, 255, 164)
-
+        if strength <= 60:
+            advice_label = self.advice
+            self.Parent.advice_label.SetLabel(advice_label)
+        else:
+            self.Parent.advice_label.SetLabel("")
         self.Parent.strength_label.SetLabel(label)
         self.Parent.vsizer.Layout()
         return colour
@@ -146,20 +158,39 @@ class PWStrengthIndicator(wx.Panel):
         length_pw = len(list_pw)
         dict_pw = {i: f for i, f in enumerate(list_pw)}
         values = dict_pw.values()
+        self.not_contents = []
         lower_bool = self.check_contents(lowerc, values)
         upper_bool = self.check_contents(upperc, values)
         digits_bool = self.check_contents(digits, values)
         symbols_bool = self.check_contents(symbols, values)
+        if length_pw <= 12:
+            self.not_contents.append("a longer password")
+
         pool_size = 0
         if lower_bool == True:
             pool_size += 26
+        else:
+            self.not_contents.append("lowercase characters")
         if upper_bool == True:
             pool_size += 26
+        else:
+            self.not_contents.append("uppercase characters")
         if digits_bool == True:
             pool_size += 10
+        else:
+            self.not_contents.append("numbers")
         if symbols_bool == True:
             pool_size += 32
+        else:
+            self.not_contents.append("special characters")
 
+        length_not_contents = len(self.not_contents)
+        if length_not_contents > 1:
+            self.advice = f"Consider using {', '.join([advice for advice in self.not_contents[:-1]])} and {self.not_contents[-1]} for extra security."
+        if length_not_contents == 1:
+            self.advice = f"Consider using {' '.join(self.not_contents)} for extra security."
+        if length_not_contents == 0:
+            self.advice = ""
         if length_pw > 0 and pool_size == 0:
             pool_size = 10
         if pool_size != 0:
@@ -194,7 +225,7 @@ class PWGenWindow(wx.Dialog):
         super().__init__(*args, **kw)
         self.SetEscapeId(5101)
         self.pw_length = 24
-        self.SetClientSize(self.FromDIP(wx.Size(500, 200)))
+        self.SetClientSize(self.FromDIP(wx.Size(600, 200)))
         self.generate_button = wx.Button(self, label="Generate Password")
         self.txt_ctrl = wx.TextCtrl(
             self,
