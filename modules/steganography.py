@@ -73,14 +73,6 @@ def merge_cover_with_secret(covertext, binary_list):
             merged_list.append("\xA0")      # 1 is represented by a nbsp in latin-1 encoding. (Unicode integer code point:32, hex code point: xA0)
     return merged_list
 
-def write_message_to_file(merged_message):
-    try:
-        with open(secret_message_path, 'w', encoding='latin-1') as f:
-            f.writelines(merged_message)
-        print('\nMessage successfully encoded')
-    except:
-        print('\nUnable to write to file. Ensure all charcters in secret message are in latin-1 encoding')
-
 def decode_message(msg):
     listmsg = list(msg)
     bit_list = []
