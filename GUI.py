@@ -52,7 +52,12 @@ class LoginScreen(wx.Frame):
         self.Destroy()
 
     def existing_db_check(self):
-        dialog = wx.MessageDialog(self, "Would you like to import an existing database?", "Import existing?", style=wx.YES_NO | wx.CANCEL)
+        dialog = wx.MessageDialog(
+            self,
+            "Would you like to import an existing database?",
+            "Import existing?",
+            style=wx.YES_NO | wx.CANCEL,
+        )
         res = dialog.ShowModal()
         if res == wx.ID_YES:
             return True
@@ -62,22 +67,33 @@ class LoginScreen(wx.Frame):
             wx.Exit()
 
     def import_existing(self):
-        with wx.FileDialog(self, "Choose database file to import", wildcard="*.tar") as fileDialog:
+        with wx.FileDialog(
+            self, "Choose database file to import", wildcard="*.tar"
+        ) as fileDialog:
             fileDialog.SetMessage("Choose database file to import")
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
             tar_path = fileDialog.GetPath()
-        with wx.MessageDialog(self, "Please specify location of salt to import", "Salt location", style=wx.OK | wx.CENTRE) as msgDialog:
+        with wx.MessageDialog(
+            self,
+            "Please specify location of salt to import",
+            "Salt location",
+            style=wx.OK | wx.CENTRE,
+        ) as msgDialog:
             if msgDialog.ShowModal() == wx.ID_CANCEL:
                 return
-        with wx.FileDialog(self, "Choose salt location", wildcard="*.key") as fileDialog:
+        with wx.FileDialog(
+            self, "Choose salt location", wildcard="*.key"
+        ) as fileDialog:
             fileDialog.SetMessage("Choose salt location")
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
             salt_path = fileDialog.GetPath()
 
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter password for this database", style=wx.OK | wx.CANCEL | wx.CENTRE
+            self,
+            message="Enter password for this database",
+            style=wx.OK | wx.CANCEL | wx.CENTRE,
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -85,8 +101,25 @@ class LoginScreen(wx.Frame):
         dialog.Destroy()
         key_manager = crypto.CryptoKeyManager(password)
         key_manager.import_salt(salt_path, password)
-        self.db.import_db(tar_path)
-        return key_manager
+        try:
+            self.db.import_db(tar_path)
+            with wx.MessageDialog(
+                self,
+                message="Database exported successfully",
+                caption="Success",
+                style=wx.OK,
+            ) as dialog:
+                dialog.ShowModal()
+            return key_manager
+        except Exception as e:
+            print(e)
+            with wx.MessageDialog(
+                self,
+                message="Something went wrong, please try again",
+                caption="Error",
+                style=wx.OK,
+            ) as dialog:
+                dialog.ShowModal()
 
     def get_pw(self):
         dialog = wx.PasswordEntryDialog(
@@ -111,7 +144,9 @@ class LoginScreen(wx.Frame):
 
     def create_password(self):
         dialog = wx.PasswordEntryDialog(
-            self, message="Enter new master password", style=wx.OK | wx.CANCEL | wx.CENTRE
+            self,
+            message="Enter new master password",
+            style=wx.OK | wx.CANCEL | wx.CENTRE,
         )
         res = dialog.ShowModal()
         if res == 5100:
@@ -122,7 +157,12 @@ class LoginScreen(wx.Frame):
             wx.Exit()
 
     def locked_message(self):
-        with wx.MessageDialog(self, message="Incorrect password entered too many times", caption="Locked account", style=wx.OK) as lockoutDialog:
+        with wx.MessageDialog(
+            self,
+            message="Incorrect password entered too many times",
+            caption="Locked account",
+            style=wx.OK,
+        ) as lockoutDialog:
             if lockoutDialog.ShowModal() == wx.ID_OK:
                 wx.Exit()
 
@@ -181,7 +221,24 @@ class BaseFrame(wx.Frame):
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
             path_name = fileDialog.GetPath()
-        self.db.dump(path_name)
+        try:
+            self.db.dump(path_name)
+            with wx.MessageDialog(
+                self,
+                message="Database exported successfully",
+                caption="Success",
+                style=wx.OK,
+            ) as dialog:
+                dialog.ShowModal()
+        except Exception as e:
+            print(e)
+            with wx.MessageDialog(
+                self,
+                message="Something went wrong, please try again",
+                caption="Error",
+                style=wx.OK,
+            ) as dialog:
+                dialog.ShowModal()
 
     def change_password(self, *event):
         existing_pw = self.get_existingpw()
@@ -190,7 +247,9 @@ class BaseFrame(wx.Frame):
         new_keymngr = crypto.CryptoKeyManager(new_pw, True)
         try:
             self.db.change_masterpw(new_keymngr.fernet, existing_keymngr.fernet)
-            dialog = wx.MessageDialog(self, "Password change successful", "Success!", style=wx.OK | wx.CENTRE)
+            dialog = wx.MessageDialog(
+                self, "Password change successful", "Success!", style=wx.OK | wx.CENTRE
+            )
             dialog.ShowModal()
             dialog.Destroy()
             new_fernet = db_ops.Fernet_obj(new_keymngr.fernet)
@@ -202,7 +261,12 @@ class BaseFrame(wx.Frame):
             print(e)
 
     def get_existingpw(self):
-        with wx.PasswordEntryDialog(self, "Enter your existing password", "Existing password", style=wx.OK | wx.CANCEL | wx.CENTRE) as pwDialog:
+        with wx.PasswordEntryDialog(
+            self,
+            "Enter your existing password",
+            "Existing password",
+            style=wx.OK | wx.CANCEL | wx.CENTRE,
+        ) as pwDialog:
             if pwDialog.ShowModal() == wx.ID_CANCEL:
                 return
             existing_pw = pwDialog.Value
@@ -210,7 +274,12 @@ class BaseFrame(wx.Frame):
             if check:
                 return existing_pw
             else:
-                with wx.MessageDialog(self, "Incorrect Password, please try again", "Incorrect Password", style=wx.OK | wx.CENTRE) as alertDialog:
+                with wx.MessageDialog(
+                    self,
+                    "Incorrect Password, please try again",
+                    "Incorrect Password",
+                    style=wx.OK | wx.CENTRE,
+                ) as alertDialog:
                     if alertDialog.ShowModal() == wx.ID_OK:
                         self.change_password()
                     else:
@@ -220,22 +289,25 @@ class BaseFrame(wx.Frame):
         new_pw = self.get_new_pw("Enter your new password", "New password")
         check_newpw = self.get_new_pw("Confirm your new password", "Confirm password")
         if new_pw != check_newpw:
-            infoDialog =  wx.MessageDialog(self, "New passwords do not match, please try again", "No match", style=wx.OK | wx.CENTRE)
+            infoDialog = wx.MessageDialog(
+                self,
+                "New passwords do not match, please try again",
+                "No match",
+                style=wx.OK | wx.CENTRE,
+            )
             infoDialog.ShowModal()
             infoDialog.Destroy()
             return self.new_pw_entry()
         else:
             return check_newpw
 
-
     def get_new_pw(self, message, caption):
-        with wx.PasswordEntryDialog(self, message, caption, style=wx.OK | wx.CANCEL | wx.CENTRE) as newPwDialog:
+        with wx.PasswordEntryDialog(
+            self, message, caption, style=wx.OK | wx.CANCEL | wx.CENTRE
+        ) as newPwDialog:
             if newPwDialog.ShowModal() == wx.ID_CANCEL:
                 return
             return newPwDialog.Value
-
-
-
 
 
 class ListPanel(wx.Panel):
