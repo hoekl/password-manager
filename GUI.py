@@ -31,11 +31,11 @@ class LoginScreen(wx.Frame):
         if self.db.is_new == True:
             if self.existing_db_check() == False:
                 password = self.create_password()
-                key_manager = crypto.CryptoKeyManager(password, True)
-                self.verify_db.setup(key_manager)
+                self.key_manager = crypto.CryptoKeyManager(password, True)
+                self.verify_db.setup(self.key_manager)
             else:
-                key_manager = self.import_existing()
-                self.verify_db.setup(key_manager)
+                self.key_manager = self.import_existing()
+                self.verify_db.setup(self.key_manager)
         self.lockout = Lockout()
         while self.authenticated == False:
             if self.lockout.check_access() == True:
