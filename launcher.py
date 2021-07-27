@@ -16,5 +16,5 @@ def thread_start():
     th.start()
 
 
-with keyboard.GlobalHotKeys({"<ctrl>+c": on_quit, "<alt>+w": thread_start}) as h:
+with keyboard.GlobalHotKeys({"<alt>+q": on_quit, "<alt>+w": thread_start}) as h:
     h.join()
