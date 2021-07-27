@@ -46,7 +46,8 @@ class LoginScreen(wx.Frame):
         fernet_obj = db_ops.Fernet_obj(self.fernet)
         self.db.set_fernet(fernet_obj)
         frm = BaseFrame(None, title="   Password Manager", db=self.db)
-        frm.SetClientSize(frm.FromDIP(wx.Size(1000, 500)))
+        size = frm.FromDIP(wx.Size(1000, 500))
+        frm.SetClientSize(size)
         frm.SetIcon(wx.Icon("modules/Icons/padlock_78356.ico", wx.BITMAP_TYPE_ICO))
         frm.Show()
         self.Destroy()
@@ -121,6 +122,7 @@ class LoginScreen(wx.Frame):
             ) as dialog:
                 dialog.ShowModal()
 
+
     def get_pw(self):
         dialog = wx.PasswordEntryDialog(
             self, message="Enter your password", style=wx.OK | wx.CANCEL | wx.CENTRE
@@ -128,10 +130,8 @@ class LoginScreen(wx.Frame):
         res = dialog.ShowModal()
         if res == 5100:
             password = dialog.Value
-            self.fernet = self.verify_db.verify_password(password)
             dialog.Destroy()
-            if self.fernet:
-                self.authenticated = True
+            if self.check_pw(password) == True:
                 self.lockout.clear_lockout()
                 return True
             else:
@@ -139,8 +139,17 @@ class LoginScreen(wx.Frame):
                 if self.lockout.tries >= 5:
                     self.lockout.trigger_lockout()
                 return False
+
         if res == 5101:
             wx.Exit()
+
+    def check_pw(self, password):
+        self.fernet = self.verify_db.verify_password(password)
+        if self.fernet:
+            self.authenticated = True
+            return True
+        else:
+            return False
 
     def create_password(self):
         dialog = wx.PasswordEntryDialog(
@@ -388,10 +397,14 @@ class ListPanel(wx.Panel):
         self.view_panel.Thaw()
 
 
-if __name__ == "__main__":
-    # When this module is run (not imported) then create the app, the
-    # frame, show it, and start the event loop.
+def main():
     app = wx.App()
     app.SetExitOnFrameDelete(True)
     screen = LoginScreen(None)
     app.MainLoop()
+
+
+if __name__ == "__main__":
+    # When this module is run (not imported) then create the app, the
+    # frame, show it, and start the event loop.
+    main()
