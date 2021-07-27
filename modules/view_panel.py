@@ -163,17 +163,11 @@ class ViewPanel(wx.Panel):
         self.btn_add_field.Hide()
         self.btn_gen_pw.Hide()
         self.btn_edit.Show()
-        tic = time.perf_counter()
         self.current_dataobj = db_ops.LoginData(doc)
         fields_needed = len(self.current_dataobj.data)
         self.create_view(fields_needed, self.current_dataobj.data)
         self.strength_indicator.strengthbar.set_pw(self.current_dataobj.password)
 
-
-
-        toc = time.perf_counter()
-
-        print(f"Function executed in {toc-tic:0.4f} seconds")
 
     def create_view(self, fields_needed, data_dict):
         if fields_needed == self.number_of_fields:
@@ -405,7 +399,6 @@ class ViewPanel(wx.Panel):
         self.Layout()
         self.Thaw()
         self.Parent.on_select_item()
-        pp.pprint(new_doc)
 
     def convert_txtbox(self):
         self.Freeze()

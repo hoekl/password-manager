@@ -53,7 +53,6 @@ class DataBase:
     def get_doc_by_id(self, uID):
         encrypted_doc = self.db.get(uID, rev=None, revs_info=False, conflicts=False)
         doc = self.fernet.decrypt_individual(encrypted_doc)
-        pp.pprint(doc)
 
         return doc
 
@@ -178,7 +177,6 @@ class VerifyLogin(DataBase):
     def verify_password(self, password):
         key_manager = crypto.CryptoKeyManager(password)
         if self.verify(key_manager) == True:
-            print("Password correct")
             return key_manager.fernet
         else:
             return False
@@ -191,7 +189,7 @@ class VerifyLogin(DataBase):
             key_manager.decrypt(to_verify)
             return True
         except Exception:
-            print("Invalid password")
+            pass
 
     def setup(self, keymanager):
         crypto_message = keymanager.encrypt()
