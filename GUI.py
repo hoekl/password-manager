@@ -23,11 +23,11 @@ light_grey = wx.Colour(55, 55, 55)
 
 
 class LoginScreen(wx.Frame):
-    def __init__(self, *args, **kw):
-        super().__init__(*args, **kw)
-        self.db = db_ops.DataBase("encrypted_mock_data")
+    def __init__(self, parent, dbName, verifyDB):
+        super().__init__(parent)
+        self.db = db_ops.DataBase(dbName)
         self.authenticated = False
-        self.verify_db = db_ops.verify_db
+        self.verify_db = db_ops.VerifyLogin(verifyDB)
         if self.db.is_new == True:
             if self.existing_db_check() == False:
                 password = self.create_password()
@@ -106,7 +106,7 @@ class LoginScreen(wx.Frame):
             self.db.import_db(tar_path)
             with wx.MessageDialog(
                 self,
-                message="Database exported successfully",
+                message="Database imported successfully",
                 caption="Success",
                 style=wx.OK,
             ) as dialog:
@@ -400,7 +400,7 @@ class ListPanel(wx.Panel):
 def main():
     app = wx.App()
     app.SetExitOnFrameDelete(True)
-    screen = LoginScreen(None)
+    screen = LoginScreen(None, "mock_data", "verification")
     app.MainLoop()
 
 
