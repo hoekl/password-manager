@@ -4,3 +4,5 @@ shortcuts
 .VSCodeCounter
 modules/configuration/config.py
 modules/configuration/db_salt/salt.key
+py-docker
+
