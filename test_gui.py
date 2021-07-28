@@ -6,6 +6,7 @@ import wx
 import GUI as gui
 from modules.encryption_handler import CryptoKeyManager
 import lockout_manager
+from modules.custom_widgets import PWStrengthIndicator
 
 
 class GUI_test(unittest.TestCase):
@@ -88,6 +89,46 @@ class LockoutTest(unittest.TestCase):
         self.assertEqual(self.lockout.check_pw("testing"), True)
         self.assertEqual(self.lockout.check_access(), True)
 
+class PasswordStrengthTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.app = wx.App()
+        self.app.SetExitOnFrameDelete(True)
+        self.app.MainLoop()
+        frame = wx.Frame()
+        self.indicator = PWStrengthIndicator(frame, password=None, c_style=None)
+
+    def test_advice(self):
+        self.indicator.set_pw("aaaaaaaaaaaa")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using a longer password, uppercase characters, numbers and special characters for extra security.")
+        self.indicator.set_pw("aaaaaaaaaaaaa")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using uppercase characters, numbers and special characters for extra security.")
+        self.indicator.set_pw("aaaaaaaaaaaaA")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using numbers and special characters for extra security.")
+        self.indicator.set_pw("aaaaaaaaaaaA1")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using special characters for extra security.")
+        self.indicator.set_pw("aaaaaaaaaaaA1!")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "")
+        self.indicator.set_pw("aaaaaaaaaaa1!")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using uppercase characters for extra security.")
+        self.indicator.set_pw("aaaaaaaaaaaa!")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using uppercase characters and numbers for extra security.")
+        self.indicator.set_pw("AAAAAAAAAAAAA")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using lowercase characters, numbers and special characters for extra security.")
+        self.indicator.set_pw("1234567891011")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using lowercase characters, uppercase characters and special characters for extra security.")
+        self.indicator.set_pw("1234567891011!")
+        self.indicator.calc_strength()
+        self.assertEqual(self.indicator.advice, "Consider using lowercase characters and uppercase characters for extra security.")
+
 
 def suite():
     suite = unittest.TestSuite()
@@ -100,6 +141,7 @@ def suite():
     suite.addTest(LockoutTest("test_right_pw"))
     suite.addTest(LockoutTest("test_wrong_pw"))
     suite.addTest(LockoutTest("test_clear_lockout"))
+    suite.addTest(PasswordStrengthTest("test_advice"))
     return suite
 
 
