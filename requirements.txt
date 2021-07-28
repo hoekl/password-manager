@@ -1,5 +1,4 @@
 wxPython==4.1.1
 cryptography==3.4.7
 CouchDB2==1.11.0
-secrets==1.0.2
 pynput==1.7.3
