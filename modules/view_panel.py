@@ -406,8 +406,7 @@ class ViewPanel(wx.Panel):
             item = sizer_item.GetWindow()
             if item.ClassName == "wxTextCtrl":
                 value = item.Value
-                static_text = wx.StaticText(self, label=value, style=wx.TE_READONLY)
-                static_text.SetForegroundColour(off_white)
+                static_text = cw.StaticText(self, label=value)
                 self.label_sizer.Replace(item, static_text)
                 item.Hide()
                 item.Destroy()
