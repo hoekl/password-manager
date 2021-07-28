@@ -3,26 +3,25 @@ from modules.db_manager import DataBase
 from modules import steganography as steg
 import time
 
-password = "test"
+password = "testing"
 
 class Lockout():
-    def __init__(self):
-        self.db = DataBase("lockout")
+    def __init__(self, dbName):
+        self.db = DataBase(dbName)
 
-    def check_pw(self):
+    def check_pw(self, pw):
+        ''' Only used for testing purposes'''
         if self.check_access() == True:
-            pw = input("Password please:")
             if pw == password:
                 self.clear_lockout()
-                print("success")
+                return True
             else:
                 self.increase_count()
                 if self.tries >= 5:
                     self.trigger_lockout()
-                else:
-                    self.check_pw()
+                return False
         else:
-            print("you're still timed out")
+            return False
 
     def check_access(self):
         self.get_status()
@@ -111,4 +110,7 @@ class Lockout():
         decoded_msg = steg.decrypt_xor(otp_array, int_list)
         cleartext = steg.int_to_characters(decoded_msg)
         return cleartext
+
+if __name__ == "__main__":
+    pass
 

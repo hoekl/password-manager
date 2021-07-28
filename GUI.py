@@ -36,7 +36,7 @@ class LoginScreen(wx.Frame):
             else:
                 self.key_manager = self.import_existing()
                 self.verify_db.setup(self.key_manager)
-        self.lockout = Lockout()
+        self.lockout = Lockout("lockout")
         while self.authenticated == False:
             if self.lockout.check_access() == True:
                 self.get_pw()
