@@ -1,5 +1,6 @@
 import unittest
-from unittest.case import TestCase
+# from unittest.case import TestCase
+import time
 import wx
 import GUI as gui
 from modules.encryption_handler import CryptoKeyManager
@@ -11,11 +12,12 @@ class GUI_test(unittest.TestCase):
         self.app.SetExitOnFrameDelete(True)
         self.app.MainLoop()
 
-    def test_password(self):
+    def test_correct_password(self):
         screen = gui.LoginScreen(None, "mock_data", "verification")
-
-
         self.assertEqual(screen.check_pw("test"), True)
+
+    def test_incorrect_password(self):
+        screen = gui.LoginScreen(None, "mock_data", "verification")
         self.assertEqual(screen.check_pw("t"), False)
 
     def test_create_newdb(self):
@@ -25,6 +27,15 @@ class GUI_test(unittest.TestCase):
         screen.key_manager.write_salt(self.salt)        #re-write overwritten salt
         screen.db.db.destroy()
         screen.verify_db.db.destroy()
+
+    def test_fetch_speed(self):
+        screen = gui.LoginScreen(None, "mock_data", "verification")
+        frame = gui.BaseFrame(None, title="Password Manager", db=screen.db)
+        tic = time.perf_counter()
+        frame.view_panel.list_box.SetSelection(0)
+        toc = time.perf_counter()
+        length_t = toc - tic
+        self.assertLess(length_t, 0.5)
 
 class CryptoKeyTest(unittest.TestCase):
     def setUp(self) -> None:
@@ -43,8 +54,10 @@ class CryptoKeyTest(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(GUI_test("test_password"))
+    suite.addTest(GUI_test("test_correct_password"))
+    suite.addTest(GUI_test("test_incorrect_password"))
     suite.addTest(GUI_test("test_create_newdb"))
+    suite.addTest(GUI_test("test_fetch_speed"))
     suite.addTest(CryptoKeyTest("test_salt"))
     suite.addTest(CryptoKeyTest("test_create_new_salt"))
     return suite
