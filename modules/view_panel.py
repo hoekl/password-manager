@@ -197,7 +197,7 @@ class ViewPanel(wx.Panel):
         for tbox_sizer_item in self.txtbox_sizer.__iter__():
             txtbox = tbox_sizer_item.GetWindow()
             box_content = dict_values[index]
-            txtbox.SetLabel(box_content)
+            txtbox.SetValue(box_content)
             txtbox.SetName(dict_keys[index])
             index += 1
 
